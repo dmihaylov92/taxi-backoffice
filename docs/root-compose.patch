@@ -1,0 +1,12 @@
+--- a/compose.yaml
++++ b/compose.yaml
+@@ -25 +25,8 @@
+-  backend:
++  backoffice:
++    build:
++      context: ./backoffice
++      dockerfile: Dockerfile
++    ports:
++      - "127.0.0.1:3000:3000"
++    depends_on:
++      backend:

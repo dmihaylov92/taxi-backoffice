@@ -1,0 +1,60 @@
+{
+  "kind": "real Chromium UI checks; no API simulation or live auth",
+  "results": [
+    {
+      "width": 320,
+      "overflow": false,
+      "consoleErrors": [],
+      "keyboard": "Tab/Shift+Tab/Enter/Space passed",
+      "routes": [
+        "login",
+        "forgot",
+        "missing reset"
+      ]
+    },
+    {
+      "width": 390,
+      "overflow": false,
+      "consoleErrors": [],
+      "keyboard": "Tab/Shift+Tab/Enter/Space passed",
+      "routes": [
+        "login",
+        "forgot",
+        "missing reset"
+      ]
+    },
+    {
+      "width": 768,
+      "overflow": false,
+      "consoleErrors": [],
+      "keyboard": "Tab/Shift+Tab/Enter/Space passed",
+      "routes": [
+        "login",
+        "forgot",
+        "missing reset"
+      ]
+    },
+    {
+      "width": 1024,
+      "overflow": false,
+      "consoleErrors": [],
+      "keyboard": "Tab/Shift+Tab/Enter/Space passed",
+      "routes": [
+        "login",
+        "forgot",
+        "missing reset"
+      ]
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "consoleErrors": [],
+      "keyboard": "Tab/Shift+Tab/Enter/Space passed",
+      "routes": [
+        "login",
+        "forgot",
+        "missing reset"
+      ]
+    }
+  ]
+}

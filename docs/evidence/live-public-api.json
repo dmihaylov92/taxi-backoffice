@@ -1,0 +1,35 @@
+{
+  "kind": "real HTTP; not browser integration",
+  "results": [
+    {
+      "check": "missing identity rejected",
+      "status": 400,
+      "code": "INVALID",
+      "conditionalMessage": null
+    },
+    {
+      "check": "unknown credentials masked",
+      "status": 401,
+      "code": "UNAUTHENTICATED",
+      "conditionalMessage": null
+    },
+    {
+      "check": "unknown recovery conditionally accepted",
+      "status": 202,
+      "code": null,
+      "conditionalMessage": "If the account is eligible, a password link will be sent."
+    },
+    {
+      "check": "invalid reset link rejected generically",
+      "status": 401,
+      "code": "UNAUTHENTICATED",
+      "conditionalMessage": null
+    },
+    {
+      "check": "invalid refresh rejected",
+      "status": 401,
+      "code": "UNAUTHENTICATED",
+      "conditionalMessage": null
+    }
+  ]
+}
