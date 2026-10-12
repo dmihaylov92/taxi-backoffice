@@ -7,11 +7,11 @@ from pathlib import Path
 results = []
 base = 'http://127.0.0.1:8080'
 for name, path, body, expected in [
-    ('missing identity rejected', '/api/auth/login', {}, 400),
-    ('unknown credentials masked', '/api/auth/login', {'email':f'unknown-{secrets.token_hex(8)}@example.test','password':'synthetic-only'}, 401),
-    ('unknown recovery conditionally accepted', '/api/auth/forgot-password', {'email':f'unknown-{secrets.token_hex(8)}@example.test'}, 202),
-    ('invalid reset link rejected generically', '/api/auth/reset-password', {'token':'synthetic.invalid','password':'synthetic-password-only'}, 401),
-    ('invalid refresh rejected', '/api/auth/refresh', {'refreshToken':'synthetic.invalid'}, 401),
+    ('missing identity rejected', '/api/v1/auth/login', {}, 400),
+    ('unknown credentials masked', '/api/v1/auth/login', {'email':f'unknown-{secrets.token_hex(8)}@example.test','password':'synthetic-only'}, 401),
+    ('unknown recovery conditionally accepted', '/api/v1/auth/forgot-password', {'email':f'unknown-{secrets.token_hex(8)}@example.test'}, 202),
+    ('invalid reset link rejected generically', '/api/v1/auth/reset-password', {'token':'synthetic.invalid','password':'synthetic-password-only'}, 401),
+    ('invalid refresh rejected', '/api/v1/auth/refresh', {'refreshToken':'synthetic.invalid'}, 401),
 ]:
     req = urllib.request.Request(base + path, data=json.dumps(body).encode(), headers={'Content-Type':'application/json'}, method='POST')
     try:

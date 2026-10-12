@@ -1,0 +1,51 @@
+/* Owner-selected yellow/black design. The flattened source has no clean photo:
+   only its right-hand photographic region is exposed; see visual limitations. */
+:root {
+  --canvas: #070e12;
+  --surface: #141d23;
+  --ink: #f4f5f6;
+  --muted: #c5cdd3;
+  --control: #65717b;
+  --accent: #f5f62b;
+  --accent-hover: #e3e51e;
+  --accent-soft: #242710;
+  --positive: #eef1ca;
+  --link: #9cdcef;
+  --focus: #f5f62b;
+}
+.auth { position: relative; isolation: isolate; display: block; min-height: 100dvh; }
+.auth::before {
+  content: ""; position: fixed; inset: 0 0 0 56%; z-index: -2;
+  background: url('/approved-login-reference.png') right center / max(242%, 122dvh) auto no-repeat;
+}
+.auth::after {
+  content: ""; position: fixed; inset: 0; z-index: -1;
+  background: linear-gradient(90deg, #070e12 35%, #070e12 56%, #070e12cc 62%, #070e1255 76%, transparent);
+}
+.field input::placeholder { color: #8d979f; }
+main { justify-content: flex-start; align-items: center; min-height: 100dvh; padding: 56px 12%; }
+.auth-card { max-width: 370px; }
+.brand { margin-bottom: 34px; }
+.checker {
+  width: 28px; height: 24px;
+  background: conic-gradient(var(--accent) 25%, transparent 0 50%, var(--accent) 0 75%, transparent 0) 0 0 / 14px 14px;
+  clip-path: polygon(0 65%, 25% 65%, 25% 35%, 50% 35%, 50% 0, 100% 0, 100% 65%, 75% 65%, 75% 100%, 0 100%);
+}
+h1 { font-size: 32px; font-weight: 700; margin: 0 0 8px; }
+.field input { background: #192229d9; }
+.input-wrap { position: relative; }
+.input-icon { position: absolute; width: 18px; height: 18px; left: 12px; top: 14px; pointer-events: none; color: var(--muted); }
+.field input { padding-left: 40px; }
+.password input { padding-right: 48px; }
+.reveal { display: flex; align-items: center; color: var(--ink); }
+.field label { font-weight: 400; }
+.btn.primary { color: #0b1013; font-weight: 700; }
+.login-options { display: flex; justify-content: space-between; gap: 12px; align-items: center; font-size: 13px; }
+.login-options a { padding-block: 8px; }
+@media (max-width: 1050px) { main { padding: 40px 8%; } }
+@media (max-width: 600px) {
+  .auth::before { left: 40%; opacity: .5; }
+  .auth::after { background: linear-gradient(90deg, #070e12f5, #070e12aa); }
+  main { justify-content: center; padding: 40px 24px; }
+  h1 { font-size: 28px; }
+}

@@ -1,5 +1,7 @@
 # Authentication integration contract
 
+SUPERSEDED. The browser now authenticates with HttpOnly cookies issued by the Java API (see ../README.md and ../../backend/REST_AUTH.md). The Node BFF was removed. This file is kept as historical discovery of the bearer contract.
+
 Status: HTTP contract verified from live OpenAPI and source; Q07/Q09 client policy PROPOSED, awaiting explicit agreement on t_3cd4c379. Do not mistake the approved visual design for security-policy approval.
 
 Sources: live http://localhost:8080/v3/api-docs (snapshot openapi-local.json), root README and backend 9d322ddc953b0442b57366bc5c98211467f161e4. Read AuthenticationController, PasswordRecoveryController, AuthenticationService, PasswordManagementService, AccountPolicyService, SecurityConfiguration and OpaqueTokens.

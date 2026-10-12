@@ -1,20 +1,29 @@
 # Taxi backoffice — auth foundation
 
-Partial implementation for t_3cd4c379; NOT ready for acceptance or production. No Accounts/internal-system screens are implemented. Owner code review is required before that next phase.
+Login, forgot-password and reset/set-password screens plus a guarded confirmation page. No Accounts/internal-system screens yet.
+
+## How auth works
+
+React talks only to the Java API (`/api/v1/auth/*`, same origin). The Java API issues the JWTs as **HttpOnly cookies**; JavaScript never sees a token.
+
+- `POST /api/v1/auth/session` logs in and sets `taxi_at` (access, 5 min) and `taxi_rt` (refresh, 7 days), both HttpOnly + SameSite=Strict (+ Secure outside local dev).
+- Unsafe requests first call `GET /api/v1/auth/session/csrf` and echo the value in `X-CSRF-Token` (double submit); the API also checks `Origin` against `taxi.session.origins`.
+- Reload restores the session through `GET /api/v1/auth/me`. On 401 the SPA rotates cookies once through `POST /api/v1/auth/session/refresh` (single-flight, plus a cross-tab Web Lock because refresh tokens are single-use).
+- Logout (`POST /api/v1/auth/session/logout`) always clears the cookies; revocation is best effort when the refresh cookie is valid.
+- The existing bearer API (`/api/v1/auth/login|refresh|logout`) is unchanged for non-browser clients.
+
+Contract and security notes: `../backend/REST_AUTH.md`.
 
 ## Run
 
-Use Node >=22.12 and npm (tested host Node 26 / npm 11; Docker Node 24).
+Needs Node >=22.12 and the backend on `127.0.0.1:8080` running with the `dev` profile (it allows the `http://localhost:3000` origin and non-Secure cookies).
 
 ```sh
-cd /mnt/e/projects/taxi/backoffice
 npm ci
-npm run dev
+npm run dev        # http://localhost:3000, /api proxied to 127.0.0.1:8080
 ```
 
-Open http://localhost:3000/login. Other routes: /forgot-password, /reset-password, /set-password. Reset/set without a acquired token show missing-link recovery. /authenticated is guarded and only a minimal confirmation, not a dashboard.
-
-Important: the UI's default AuthPort deliberately fails closed while Q07/Q09 session/origin/link decisions await agreement. The running app does NOT fake successful authentication or emails. Success and server-error screen behaviors are exercised with explicitly mocked ports in component tests. Real transport, session refresh and fragment acquisition are not enabled. See docs/auth-integration.md.
+Routes: `/login`, `/forgot-password`, `/reset-password#token=…`, `/set-password#token=…`, `/authenticated` (guarded).
 
 ## Checks
 
@@ -25,38 +34,23 @@ npm test
 npm run build
 ```
 
-Vitest + Testing Library tests use synthetic fixtures. Tests do not prove backend integration. `scripts/check-public-api.py` exercises real public HTTP contract errors against the existing local backend. `scripts/check-live-api.py --documented-dev-seed` attempts the documented development fixture, provisions ONE synthetic account, exercises invitation/reset/auth lifecycle and leaves that fixture disabled; it never changes the seed password. Do not run against production. Current attempt stopped at seed login HTTP 401; no fixture created. A valid authorized test account is still needed.
+Vitest/Testing Library use synthetic fixtures and mocked `fetch`; they do not prove live integration. Backend: `cd ../backend && ./mvnw verify`.
 
-## Docker (existing project stack)
+## Docker
 
-The root launcher explicitly uses ../compose.yaml; a backoffice service has been added there, without changing backend/Mongo or the separately running legacy Mailpit container. Launcher currently accepts backend/mongo/all only, so use these precise commands for frontend-only work:
+`Dockerfile` builds the SPA and serves it with nginx on `3000`; `nginx.conf` proxies `/api/` to `backend:8080` so the browser stays same-origin (no CORS).
 
 ```sh
-docker compose -f ../compose.yaml config --quiet
 docker compose -f ../compose.yaml build backoffice
-# Existing backend is already healthy; do not recreate it or stop SMTP.
 docker compose -f ../compose.yaml up -d --no-deps --wait backoffice
 ```
 
-Stop `npm run dev` first to free port 3000. Multi-stage Dockerfile uses Node to build and unprivileged nginx to serve static assets on container port 3000. Host binding is 127.0.0.1:3000:3000. SPA deep links fall back to index.html; /api goes to backend:8080 through Docker DNS, NOT Vite or container localhost. No credentials are baked in; access logging is off. Runtime is local-development scope, not a production deployment approval.
-
-Browser check (isolated Playwright image because host lacks libnspr4):
-
-```sh
-docker run --rm --network taxi-local_default \
-  -v /mnt/e/projects/taxi/backoffice:/work -w /work \
-  -e UI_BASE_URL=http://backoffice:3000 \
-  mcr.microsoft.com/playwright:v1.64.0-noble node scripts/check-ui.mjs
-```
-
-Reports/screenshots live under docs/evidence. Headless keyboard events are not physical keyboard, screen-reader, mobile-device or full WCAG conformance evidence.
-
 ## Structure
 
-src/auth: Bulgarian copy/configured branding, typed UI port, validation/error mapping.
-src/components: shared layout and labelled fields/password toggle.
-src/App.tsx: public route/form transitions and guarded authenticated confirmation.
-src/styles.css: approved semantic tokens and responsive auth layouts.
-.design-reference: preserved recovered design archive, ignored by Git and Docker.
+- `src/App.tsx`, `src/main.tsx`: composition root (session provider + routes) and entry.
+- `src/auth`: vertical slice. `domain/{models,clients,services,mappers}` (API calls, session/validation logic, status-to-failure mapping); `ui/{pages,components,assets}` (one page per screen, form hooks, Bulgarian copy).
+- `src/common`: shared slice (layout shell, labelled fields/password toggle, global styles and theme).
+- `src/tests`: all tests, mirroring `src` by slice, named `<Subject>.test.ts(x)`.
+- `nginx.conf`: static hosting, SPA fallback, `/api/` proxy, CSP.
 
-No remote fonts, analytics, credential persistence, public registration, Accounts UI or backend changes.
+No remote fonts, analytics, tokens in browser storage, public registration or Accounts UI.

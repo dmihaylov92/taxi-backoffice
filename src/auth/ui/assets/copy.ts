@@ -1,25 +1,29 @@
-export const brand = { name: "Taxi", logo: "/logo.svg" };
+import { brand } from "../../../common/ui/assets/copy";
+import type { AuthFailureKind } from "../../domain/models/AuthFailure";
+import type { FormErrorKind } from "../../domain/models/FormErrors";
+
 export const bg = {
   login: "Вход",
+  welcome: "Добре дошли",
   forgot: "Забравена парола",
   reset: "Нова парола",
   set: "Задаване на парола",
   area: "Административен панел",
-  email: "Имейл",
+  email: "Имейл адрес",
+  emailPlaceholder: "example@company.com",
   password: "Парола",
   confirm: "Повторете паролата",
-  loginSub: `Влезте в ${brand.name} с вашия служебен акаунт.`,
+  loginSub: "Влезте в административния панел",
   forgotSub:
     "Ще изпратим линк за нова парола, ако акаунтът може да получи такъв.",
   resetSub: `Изберете парола за вашия акаунт в ${brand.name}.`,
-  show: "Покажи",
-  hide: "Скрий",
   send: "Изпрати линк",
   save: "Запази паролата",
   pending: "Изпращане…",
   back: "Към входа",
   newLink: "Поискай нов линк",
   forgotLink: "Забравена парола?",
+  rememberSession: "Сесията се запазва",
   noRegistration: "Нямате акаунт? Обърнете се към администратор.",
   singleSession: "Нов вход прекратява предишната активна сесия.",
   policy:
@@ -52,9 +56,11 @@ export const bg = {
   requiredPassword: "Въведете парола.",
   mismatch: "Паролите не съвпадат.",
   session: "Сесията приключи. Влезте отново.",
+  checkingSession: "Проверка на сесията…",
+  sessionUnconfirmed: "Сесията не може да бъде потвърдена. Влезте отново.",
   signedOut: "Излязохте от акаунта.",
   localSignout:
-    "Излязохте само от този прозорец. Прекратяването на сървърната сесия не е потвърдено.",
+    "Изходът не е потвърден. Сесията може да е активна. Опитайте отново или влезте наново.",
   authenticated: "Успешен вход",
   authenticatedSub:
     "Достъпът е потвърден. Вътрешните екрани все още не са реализирани.",
@@ -62,3 +68,29 @@ export const bg = {
   integrationPending:
     "Свързването с API очаква потвърждение на договора за сесията. Не е изпратена заявка.",
 } as const;
+
+export const failureText: Record<AuthFailureKind, string> = {
+  integrationPending: bg.integrationPending,
+  credentials: bg.credentials,
+  invalidLink: bg.invalidLinkSub,
+  loginConflict: bg.loginConflict,
+  resetConflict: bg.resetConflict,
+  throttled: bg.throttled,
+  invalid: bg.invalid,
+  size: bg.size,
+  forbidden: bg.forbidden,
+  uncertain: bg.uncertain,
+  unavailable: bg.unavailable,
+  offline: bg.offline,
+};
+
+export const formErrorText: Record<FormErrorKind, string> = {
+  emailInvalid: bg.emailError,
+  passwordRequired: bg.requiredPassword,
+  passwordPolicy: bg.policy,
+  passwordMismatch: bg.mismatch,
+};
+
+export function formErrorMessage(kind?: FormErrorKind): string | undefined {
+  return kind ? formErrorText[kind] : undefined;
+}

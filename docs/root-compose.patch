@@ -1,12 +1,22 @@
 --- a/compose.yaml
 +++ b/compose.yaml
-@@ -25 +25,8 @@
+@@ -22,7 +22,18 @@
+         max-size: "10m"
+         max-file: "3"
+ 
 -  backend:
 +  backoffice:
 +    build:
 +      context: ./backoffice
 +      dockerfile: Dockerfile
++    environment:
++      API_ORIGIN: http://backend:8080
++      BROWSER_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
++      LOCAL_HTTP: "true"
 +    ports:
 +      - "127.0.0.1:3000:3000"
 +    depends_on:
 +      backend:
+         condition: service_healthy
+     healthcheck:
+       test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:3000/login"]
