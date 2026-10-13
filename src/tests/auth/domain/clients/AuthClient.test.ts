@@ -1,25 +1,16 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AuthClient } from "../../../../auth/domain/clients/AuthClient";
 import { AuthService } from "../../../../auth/domain/services/AuthService";
+import {
+  csrfResponse as csrf,
+  jsonResponse as response,
+  queuedFetch,
+} from "../../../common/http";
 
 const user = { id: "test", email: "test@example.test", roles: ["ADMIN"] };
 
-function response(status: number, body?: unknown) {
-  return new Response(body === undefined ? null : JSON.stringify(body), {
-    status,
-  });
-}
-
-function csrf() {
-  return response(200, { token: "synthetic-proof", headerName: "X-CSRF-Token" });
-}
-
 function transport(...responses: Response[]) {
-  const fetcher = vi.fn();
-
-  for (const value of responses) {
-    fetcher.mockResolvedValueOnce(value);
-  }
+  const fetcher = queuedFetch(...responses);
 
   vi.stubGlobal("fetch", fetcher);
 
@@ -122,15 +113,18 @@ describe("cookie session client and service (mocked HTTP)", () => {
     expect(fetcher.mock.calls[1][0]).toBe("/api/v1/auth/session/logout");
   });
 
-  it("recovery and reset carry proof", async () => {
-    const fetcher = transport(csrf(), response(202), csrf(), response(204));
+  it("recovery and reset carry the same cached proof", async () => {
+    const fetcher = transport(csrf(), response(202), response(204));
     const service = createService();
 
     await service.forgot(user.email);
     await service.reset("synthetic-link", "synthetic-password");
 
     expect(fetcher.mock.calls[1][0]).toBe("/api/v1/auth/forgot-password");
-    expect(fetcher.mock.calls[3][1].body).toBe(
+    expect(fetcher.mock.calls[2][1].headers).toMatchObject({
+      "X-CSRF-Token": "synthetic-proof",
+    });
+    expect(fetcher.mock.calls[2][1].body).toBe(
       JSON.stringify({ token: "synthetic-link", password: "synthetic-password" }),
     );
   });

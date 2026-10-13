@@ -1,8 +1,11 @@
-export class AuthError extends Error {
+import { ApiError } from "../../../common/domain/models/ApiError";
+
+/** Auth transport failure; the optional code lets a client flag special cases such as a pending integration. */
+export class AuthError extends ApiError {
   constructor(
-    public readonly status: number,
+    status: number,
     public readonly code = "",
   ) {
-    super("Authentication request failed");
+    super(status);
   }
 }

@@ -1,4 +1,4 @@
-import { brand } from "../../../common/ui/assets/copy";
+import { apiMessages, brand } from "../../../common/ui/assets/copy";
 import type { AuthFailureKind } from "../../domain/models/AuthFailure";
 import type { FormErrorKind } from "../../domain/models/FormErrors";
 
@@ -40,22 +40,22 @@ export const bg = {
   invalidLinkSub: "Поискайте нов линк или се обърнете към администратор.",
   credentials:
     "Имейлът или паролата са неправилни. Проверете данните или използвайте „Забравена парола“.",
-  unavailable: "Услугата не е достъпна. Опитайте отново по-късно.",
-  throttled: "Твърде много опити. Изчакайте, преди да опитате отново.",
-  invalid: "Заявката е отхвърлена. Проверете въведените данни.",
-  size: "Заявката е твърде голяма.",
-  forbidden: "Нямате достъп до тази операция.",
+  unavailable: apiMessages.unavailable,
+  throttled: apiMessages.throttled,
+  invalid: apiMessages.invalid,
+  size: apiMessages.size,
+  forbidden: apiMessages.forbidden,
   loginConflict:
     "Входът не е потвърден поради едновременна операция. Опитайте отново или поискайте нова парола.",
   resetConflict:
     "Промяната не е потвърдена поради едновременна операция. Влезте или поискайте нов линк.",
   uncertain:
     "Промяната на паролата не е потвърдена. Не повтаряйте заявката с този линк. Влезте или поискайте нов линк.",
-  offline: "Няма връзка с мрежата. Свържете се и опитайте отново.",
+  offline: apiMessages.offline,
   emailError: "Въведете валиден имейл (до 254 знака).",
   requiredPassword: "Въведете парола.",
   mismatch: "Паролите не съвпадат.",
-  session: "Сесията приключи. Влезте отново.",
+  session: apiMessages.sessionEnded,
   checkingSession: "Проверка на сесията…",
   sessionUnconfirmed: "Сесията не може да бъде потвърдена. Влезте отново.",
   signedOut: "Излязохте от акаунта.",

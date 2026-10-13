@@ -8,6 +8,8 @@ export interface AuthApi {
   forgot(email: string): Promise<void>;
   reset(token: string, password: string): Promise<void>;
   logout(): Promise<boolean>;
+  /** Rotates the cookie pair for other slices' requests; false means the session is gone. */
+  renew?(): Promise<boolean>;
 }
 
 const REFRESH_LOCK = "taxi-auth-refresh";
@@ -39,6 +41,13 @@ export class AuthService implements AuthApi {
     });
 
     return this.restoration;
+  }
+
+  /** Rotates the cookie pair for other slices' requests; false means the session is gone. */
+  async renew(): Promise<boolean> {
+    const identity = await withRefreshLock(() => this.refreshSession());
+
+    return identity !== null;
   }
 
   async login(email: string, password: string): Promise<Identity> {

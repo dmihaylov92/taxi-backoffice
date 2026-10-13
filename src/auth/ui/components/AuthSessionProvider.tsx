@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router";
-import type { Identity } from "../../domain/models/Identity";
+import { homePath, type Identity } from "../../domain/models/Identity";
 import type { AuthApi } from "../../domain/services/AuthService";
 import { bg } from "../assets/copy";
 import { AuthSessionContext } from "./useAuthSession";
@@ -71,7 +71,15 @@ export function AuthSessionProvider({
     setNotice(undefined);
     setLoggingOut(false);
     setIdentity(user);
-    navigate("/authenticated", { replace: true });
+    navigate(homePath(user), { replace: true });
+  }
+
+  /** Another slice's request was rejected as unauthenticated and could not be renewed. */
+  function expire() {
+    setIdentity(null);
+    setLoggingOut(false);
+    setNotice(bg.session);
+    navigate("/login", { replace: true });
   }
 
   async function logout() {
@@ -107,6 +115,7 @@ export function AuthSessionProvider({
         loggingOut,
         notice,
         signIn,
+        expire,
         logout,
       }}
     >

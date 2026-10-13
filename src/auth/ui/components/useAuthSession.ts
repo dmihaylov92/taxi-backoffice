@@ -10,6 +10,7 @@ export interface AuthSession {
   loggingOut: boolean;
   notice?: string;
   signIn(identity: Identity): void;
+  expire(): void;
   logout(): Promise<void>;
 }
 

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { PendingButton } from "../../../common/ui/components/PendingButton";
 import { bg } from "../assets/copy";
 
 export function SubmitButton({
@@ -11,15 +12,13 @@ export function SubmitButton({
   children: ReactNode;
 }) {
   return (
-    <button className="btn primary" disabled={disabled}>
-      {pending ? (
-        <>
-          <span className="spinner" aria-hidden="true" />
-          {bg.pending}
-        </>
-      ) : (
-        children
-      )}
-    </button>
+    <PendingButton
+      className="btn primary"
+      pending={pending}
+      pendingLabel={bg.pending}
+      disabled={disabled}
+    >
+      {children}
+    </PendingButton>
   );
 }

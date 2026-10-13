@@ -1,6 +1,6 @@
-# Taxi backoffice — auth foundation
+# Taxi backoffice
 
-Login, forgot-password and reset/set-password screens plus a guarded confirmation page. No Accounts/internal-system screens yet.
+Login, forgot-password and reset/set-password screens, plus the administrator **Accounts** screen (`/accounts`): searchable/filterable list, guided create, edit, deactivate, delete and resend invitation against `/api/v1/accounts`. Other sidebar modules are shown as unavailable.
 
 ## How auth works
 
@@ -23,7 +23,7 @@ npm ci
 npm run dev        # http://localhost:3000, /api proxied to 127.0.0.1:8080
 ```
 
-Routes: `/login`, `/forgot-password`, `/reset-password#token=…`, `/set-password#token=…`, `/authenticated` (guarded).
+Routes: `/accounts` (ADMIN only; filters and page live in the query string), `/login`, `/forgot-password`, `/reset-password#token=…`, `/set-password#token=…`, `/authenticated` (guarded).
 
 ## Checks
 
@@ -53,4 +53,4 @@ docker compose -f ../compose.yaml up -d --no-deps --wait backoffice
 - `src/tests`: all tests, mirroring `src` by slice, named `<Subject>.test.ts(x)`.
 - `nginx.conf`: static hosting, SPA fallback, `/api/` proxy, CSP.
 
-No remote fonts, analytics, tokens in browser storage, public registration or Accounts UI.
+No remote fonts, analytics, tokens in browser storage or public registration.
