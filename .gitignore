@@ -6,3 +6,4 @@ dist/
 .design-reference/
 test-results/
 playwright-report/
+.idea
