@@ -1,0 +1,70 @@
+.toolbar.single {
+  grid-template-columns: minmax(220px, 1fr);
+}
+
+.plate-cell {
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.vin-cell {
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.driver-names {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.driver-dialog {
+  display: grid;
+  gap: 20px;
+}
+
+.driver-dialog h3 {
+  margin: 0 0 8px;
+}
+
+.driver-dialog .banner {
+  margin: 0;
+}
+
+.driver-rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.driver-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.driver-row:last-child {
+  border-bottom: 0;
+}
+
+.driver-row > span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.driver-dialog .search + .hint {
+  margin: 8px 0 12px;
+}
+
+.driver-dialog .search input {
+  padding-left: 12px;
+}

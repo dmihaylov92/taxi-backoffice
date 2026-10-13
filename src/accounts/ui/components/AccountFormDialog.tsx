@@ -2,6 +2,7 @@ import { ROLES, type Role } from "../../../common/domain/models/Role";
 import { useState, type FormEvent } from "react";
 import { Field } from "../../../common/ui/components/Field";
 import { Modal } from "../../../common/ui/components/Modal";
+import { useApiAction } from "../../../common/ui/hooks/useApiAction";
 import { PendingButton } from "../../../common/ui/components/PendingButton";
 import {
   ACCOUNT_STATUSES,
@@ -22,7 +23,6 @@ import {
   draftErrorText,
 } from "../assets/copy";
 import { RoleBadge, StatusBadge } from "./Badges";
-import { useAccountAction } from "./useAccountAction";
 
 interface AccountFormDialogProps {
   mode: "create" | "edit";
@@ -81,7 +81,7 @@ export function AccountFormDialog({
   const [draft, setDraft] = useState(initial);
   const [step, setStep] = useState<Step>(0);
   const [errors, setErrors] = useState<DraftErrors>({});
-  const action = useAccountAction(onUnauthenticated);
+  const action = useApiAction(onUnauthenticated);
   const creating = mode === "create";
   const title = creating ? accountsCopy.create.title : accountsCopy.edit.title;
 

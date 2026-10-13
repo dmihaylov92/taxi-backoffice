@@ -27,8 +27,8 @@ function createService(overrides: Record<string, unknown>) {
 }
 
 describe("AccountService", () => {
-  it("asks for one extra row and reports a next page without showing it", async () => {
-    const rows = Array.from({ length: PAGE_SIZE + 1 }, (_, index) =>
+  it("keeps the page size constant so offsets stay aligned and a full page has a next one", async () => {
+    const rows = Array.from({ length: PAGE_SIZE }, (_, index) =>
       rawAccount(index),
     );
     const { client, service } = createService({
@@ -38,7 +38,7 @@ describe("AccountService", () => {
     const page = await service.list({ text: "iv", role: "DRIVER" }, 1);
 
     expect(client.list).toHaveBeenCalledWith(
-      `q=iv&role=DRIVER&page=1&size=${PAGE_SIZE + 1}`,
+      `q=iv&role=DRIVER&page=1&size=${PAGE_SIZE}`,
       undefined,
     );
     expect(page.items).toHaveLength(PAGE_SIZE);

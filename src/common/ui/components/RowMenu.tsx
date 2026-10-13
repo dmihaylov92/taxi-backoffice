@@ -1,23 +1,27 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { Icon } from "../../../common/ui/components/Icon";
-import { accountsCopy } from "../assets/copy";
+import { Icon } from "./Icon";
 
-export type RowAction = "edit" | "resend" | "deactivate" | "remove";
+export interface RowMenuItem<Action extends string> {
+  action: Action;
+  label: string;
+  tone?: "danger";
+}
 
-interface AccountRowMenuProps {
-  accountName: string;
-  actions: readonly RowAction[];
-  disabled: boolean;
-  onSelect: (action: RowAction) => void;
+interface RowMenuProps<Action extends string> {
+  /** Accessible name of the trigger, naming the row it belongs to. */
+  triggerLabel: string;
+  items: readonly RowMenuItem<Action>[];
+  disabled?: boolean;
+  onSelect: (action: Action) => void;
 }
 
 /** Overflow menu for one table row; follows the menu-button pattern (arrows, Escape, focus return). */
-export function AccountRowMenu({
-  accountName,
-  actions,
+export function RowMenu<Action extends string>({
+  triggerLabel,
+  items,
   disabled,
   onSelect,
-}: AccountRowMenuProps) {
+}: RowMenuProps<Action>) {
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const root = useRef<HTMLDivElement>(null);
@@ -47,11 +51,11 @@ export function AccountRowMenu({
   }
 
   function onKeyDown(event: React.KeyboardEvent) {
-    const items = [
+    const elements = [
       ...(root.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ??
         []),
     ];
-    const index = items.indexOf(document.activeElement as HTMLElement);
+    const index = elements.indexOf(document.activeElement as HTMLElement);
 
     switch (event.key) {
       case "Escape": {
@@ -63,14 +67,14 @@ export function AccountRowMenu({
 
       case "ArrowDown": {
         event.preventDefault();
-        items[(index + 1) % items.length]?.focus();
+        elements[(index + 1) % elements.length]?.focus();
 
         break;
       }
 
       case "ArrowUp": {
         event.preventDefault();
-        items[(index - 1 + items.length) % items.length]?.focus();
+        elements[(index - 1 + elements.length) % elements.length]?.focus();
 
         break;
       }
@@ -83,7 +87,7 @@ export function AccountRowMenu({
     }
   }
 
-  if (actions.length === 0) {
+  if (items.length === 0) {
     return null;
   }
 
@@ -96,7 +100,7 @@ export function AccountRowMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        aria-label={accountsCopy.actionsFor(accountName)}
+        aria-label={triggerLabel}
         disabled={disabled}
         onClick={() => setOpen(!open)}
       >
@@ -104,20 +108,20 @@ export function AccountRowMenu({
       </button>
       {open && (
         <ul id={menuId} role="menu" className="menu">
-          {actions.map((action) => (
-            <li key={action} role="none">
+          {items.map((item) => (
+            <li key={item.action} role="none">
               <button
                 type="button"
                 role="menuitem"
-                className={action === "remove" ? "danger" : undefined}
+                className={item.tone === "danger" ? "danger" : undefined}
                 onClick={() => {
                   // Focus the trigger first so a dialog opened next returns focus here, not to <body>.
                   trigger.current?.focus();
                   setOpen(false);
-                  onSelect(action);
+                  onSelect(item.action);
                 }}
               >
-                {accountsCopy.menu[action]}
+                {item.label}
               </button>
             </li>
           ))}

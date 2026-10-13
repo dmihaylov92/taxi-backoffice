@@ -1,10 +1,7 @@
-import { ApiError } from "../../../common/domain/models/ApiError";
-import type {
-  AccountFailure,
-  AccountFailureKind,
-} from "../models/AccountFailure";
+import { ApiError } from "../models/ApiError";
+import type { ApiFailure, ApiFailureKind } from "../models/ApiFailure";
 
-function kindFor(status: number | undefined): AccountFailureKind {
+function kindFor(status: number | undefined): ApiFailureKind {
   switch (status) {
     case 0: {
       return "offline";
@@ -44,6 +41,6 @@ function kindFor(status: number | undefined): AccountFailureKind {
   }
 }
 
-export function toAccountFailure(error: unknown): AccountFailure {
+export function toApiFailure(error: unknown): ApiFailure {
   return { kind: kindFor(error instanceof ApiError ? error.status : undefined) };
 }

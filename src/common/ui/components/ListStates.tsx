@@ -1,6 +1,13 @@
-import { accountsCopy } from "../assets/copy";
+export interface EmptyStateCopy {
+  title: string;
+  body: string;
+  create: string;
+  noResultsTitle: string;
+  noResultsBody: string;
+  clearFilters: string;
+}
 
-export function LoadingState() {
+export function LoadingState({ message }: { message: string }) {
   return (
     <div className="state" role="status">
       <ul className="skeleton" aria-hidden="true">
@@ -10,7 +17,7 @@ export function LoadingState() {
       </ul>
       <p className="state-line">
         <span className="spinner" aria-hidden="true" />
-        {accountsCopy.loading}
+        {message}
       </p>
     </div>
   );
@@ -18,20 +25,22 @@ export function LoadingState() {
 
 export function EmptyState({
   filtered,
+  copy,
   onCreate,
   onClear,
 }: {
   filtered: boolean;
+  copy: EmptyStateCopy;
   onCreate: () => void;
   onClear: () => void;
 }) {
   if (filtered) {
     return (
       <div className="state">
-        <h2>{accountsCopy.noResultsTitle}</h2>
-        <p className="muted">{accountsCopy.noResultsBody}</p>
+        <h2>{copy.noResultsTitle}</h2>
+        <p className="muted">{copy.noResultsBody}</p>
         <button type="button" className="btn" onClick={onClear}>
-          {accountsCopy.clearFilters}
+          {copy.clearFilters}
         </button>
       </div>
     );
@@ -39,28 +48,32 @@ export function EmptyState({
 
   return (
     <div className="state">
-      <h2>{accountsCopy.emptyTitle}</h2>
-      <p className="muted">{accountsCopy.emptyBody}</p>
+      <h2>{copy.title}</h2>
+      <p className="muted">{copy.body}</p>
       <button type="button" className="btn primary" onClick={onCreate}>
-        {accountsCopy.newAccount}
+        {copy.create}
       </button>
     </div>
   );
 }
 
 export function ErrorState({
+  title,
   message,
+  retryLabel,
   onRetry,
 }: {
+  title: string;
   message: string;
+  retryLabel: string;
   onRetry: () => void;
 }) {
   return (
     <div className="state" role="alert">
-      <h2>{accountsCopy.errorTitle}</h2>
+      <h2>{title}</h2>
       <p className="muted">{message}</p>
       <button type="button" className="btn" onClick={onRetry}>
-        {accountsCopy.retry}
+        {retryLabel}
       </button>
     </div>
   );

@@ -29,22 +29,22 @@ export interface AccountApi {
 export class AccountService implements AccountApi {
   constructor(private readonly client: AccountClient = new AccountClient()) {}
 
-  /** Requests one extra row so that the existence of a next page is known without totals. */
+  /**
+   * The API offset is page × size, so the size must stay constant across pages; a full page is taken
+   * to have a successor, and an exact-multiple result ends on an empty page the UI steps back from.
+   */
   async list(
     filters: AccountFilters,
     page: number,
     signal?: AbortSignal,
   ): Promise<AccountPage> {
     const raw = await this.client.list(
-      toListQuery(filters, page, PAGE_SIZE + 1),
+      toListQuery(filters, page, PAGE_SIZE),
       signal,
     );
     const accounts = toAccounts(raw);
 
-    return {
-      items: accounts.slice(0, PAGE_SIZE),
-      hasNext: accounts.length > PAGE_SIZE,
-    };
+    return { items: accounts, hasNext: accounts.length === PAGE_SIZE };
   }
 
   async create(draft: AccountDraft): Promise<Account> {

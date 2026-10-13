@@ -1,4 +1,10 @@
-import { accountsCopy } from "../assets/copy";
+export interface PaginationCopy {
+  label: string;
+  shown: (count: number) => string;
+  previous: string;
+  next: string;
+  currentPage: (page: number) => string;
+}
 
 interface PaginationProps {
   /** Zero-based. */
@@ -6,6 +12,7 @@ interface PaginationProps {
   shown: number;
   hasNext: boolean;
   disabled: boolean;
+  copy: PaginationCopy;
   onPage: (page: number) => void;
 }
 
@@ -15,12 +22,13 @@ export function Pagination({
   shown,
   hasNext,
   disabled,
+  copy,
   onPage,
 }: PaginationProps) {
   return (
-    <nav className="pagination" aria-label={accountsCopy.pageLabel}>
+    <nav className="pagination" aria-label={copy.label}>
       <p className="muted" role="status">
-        {accountsCopy.shown(shown)}
+        {copy.shown(shown)}
       </p>
       <div className="pagination-controls">
         <button
@@ -29,10 +37,10 @@ export function Pagination({
           disabled={disabled || page === 0}
           onClick={() => onPage(page - 1)}
         >
-          {accountsCopy.previous}
+          {copy.previous}
         </button>
         <span aria-current="page" className="page-number">
-          {accountsCopy.currentPage(page + 1)}
+          {copy.currentPage(page + 1)}
         </span>
         <button
           type="button"
@@ -40,7 +48,7 @@ export function Pagination({
           disabled={disabled || !hasNext}
           onClick={() => onPage(page + 1)}
         >
-          {accountsCopy.next}
+          {copy.next}
         </button>
       </div>
     </nav>

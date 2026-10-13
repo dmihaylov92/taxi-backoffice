@@ -37,6 +37,7 @@ export const shell = {
     orders: "Поръчки",
     drivers: "Шофьори",
     customers: "Клиенти",
+    cars: "Автомобили",
     accounts: "Акаунти",
     settings: "Настройки",
   },

@@ -21,6 +21,7 @@ const NAV_ENTRIES: readonly NavEntry[] = [
   { label: shell.items.orders },
   { label: shell.items.drivers },
   { label: shell.items.customers },
+  { label: shell.items.cars, to: "/cars" },
   { label: shell.items.accounts, to: "/accounts" },
   { label: shell.items.settings },
 ];

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Navigate,
   Outlet,
@@ -12,7 +12,7 @@ import {
   type AccountApi,
 } from "./accounts/domain/services/AccountService";
 import { AccountsPage } from "./accounts/ui/pages/AccountsPage";
-import { homePath } from "./auth/domain/models/Identity";
+import { homePath, type Identity } from "./auth/domain/models/Identity";
 import { ROLES, type Role } from "./common/domain/models/Role";
 import { authService, type AuthApi } from "./auth/domain/services/AuthService";
 import { isLinkPath } from "./auth/domain/services/ResetLinkService";
@@ -27,6 +27,10 @@ import { ApiClient } from "./common/domain/clients/ApiClient";
 import { roleLabels } from "./common/ui/assets/copy";
 import { AppShell } from "./common/ui/components/AppShell";
 import { Layout } from "./common/ui/components/Layout";
+import { CarClient } from "./rides/domain/clients/CarClient";
+import { DriverLookupClient } from "./rides/domain/clients/DriverLookupClient";
+import { CarService, type CarApi } from "./rides/domain/services/CarService";
+import { CarsPage } from "./rides/ui/pages/CarsPage";
 
 function roleLabel(roles: readonly Role[]): string {
   const primary = ROLES.find((role) => roles.includes(role));
@@ -47,7 +51,17 @@ function PublicLayout({ sessionError }: { sessionError: boolean }) {
   );
 }
 
-function AccountsRoute({ accounts }: { accounts: AccountApi }) {
+interface AdminSession {
+  identity: Identity;
+  expire: () => void;
+}
+
+/** Signed-in administrator inside the application shell; everyone else is redirected. */
+function AdminRoute({
+  children,
+}: {
+  children: (session: AdminSession) => ReactNode;
+}) {
   const { identity, loggingOut, logout, expire } = useAuthSession();
   const location = useLocation();
 
@@ -66,20 +80,18 @@ function AccountsRoute({ accounts }: { accounts: AccountApi }) {
       loggingOut={loggingOut}
       onLogout={logout}
     >
-      <AccountsPage
-        accounts={accounts}
-        currentUserId={identity.id}
-        onSessionExpired={expire}
-      />
+      {children({ identity, expire })}
     </AppShell>
   );
 }
 
 function AppRoutes({
   accounts,
+  cars,
   linkToken,
 }: {
   accounts: AccountApi;
+  cars: CarApi;
   linkToken?: string;
 }) {
   const { booting, sessionError, identity } = useAuthSession();
@@ -105,7 +117,28 @@ function AppRoutes({
 
   return (
     <Routes>
-      <Route path="/accounts" element={<AccountsRoute accounts={accounts} />} />
+      <Route
+        path="/accounts"
+        element={
+          <AdminRoute>
+            {({ identity: admin, expire }) => (
+              <AccountsPage
+                accounts={accounts}
+                currentUserId={admin.id}
+                onSessionExpired={expire}
+              />
+            )}
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/cars"
+        element={
+          <AdminRoute>
+            {({ expire }) => <CarsPage cars={cars} onSessionExpired={expire} />}
+          </AdminRoute>
+        }
+      />
       <Route element={<PublicLayout sessionError={sessionError} />}>
         <Route
           path="/login"
@@ -157,20 +190,36 @@ function createAccountService(auth: AuthApi): AccountApi {
   );
 }
 
+/** Car requests renew the cookie session the same way account requests do. */
+function createCarService(auth: AuthApi): CarApi {
+  const api = new ApiClient({
+    recover: async () => (await auth.renew?.()) ?? false,
+  });
+
+  return new CarService(new CarClient(api), new DriverLookupClient(api));
+}
+
 export function App({
   auth = authService,
   accounts,
+  cars,
   linkToken,
 }: {
   auth?: AuthApi;
   accounts?: AccountApi;
+  cars?: CarApi;
   linkToken?: string;
 }) {
   const [defaultAccounts] = useState(() => createAccountService(auth));
+  const [defaultCars] = useState(() => createCarService(auth));
 
   return (
     <AuthSessionProvider auth={auth}>
-      <AppRoutes accounts={accounts ?? defaultAccounts} linkToken={linkToken} />
+      <AppRoutes
+        accounts={accounts ?? defaultAccounts}
+        cars={cars ?? defaultCars}
+        linkToken={linkToken}
+      />
     </AuthSessionProvider>
   );
 }

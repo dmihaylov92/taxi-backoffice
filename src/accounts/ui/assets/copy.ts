@@ -1,8 +1,11 @@
 import { apiMessages, roleLabels } from "../../../common/ui/assets/copy";
 import type { Role } from "../../../common/domain/models/Role";
+import type { ConfirmRemoveCopy } from "../../../common/ui/components/ConfirmRemoveDialog";
+import type { EmptyStateCopy } from "../../../common/ui/components/ListStates";
+import type { PaginationCopy } from "../../../common/ui/components/Pagination";
 import type { AccountStatus } from "../../domain/models/Account";
 import type { DraftErrorKind } from "../../domain/models/AccountDraft";
-import type { AccountFailureKind } from "../../domain/models/AccountFailure";
+import type { ApiFailureKind } from "../../../common/domain/models/ApiFailure";
 
 export const accountsCopy = {
   title: "Акаунти",
@@ -110,7 +113,7 @@ export const accountsCopy = {
   dismiss: "Затвори съобщението",
 } as const;
 
-export const accountFailureText: Record<AccountFailureKind, string> = {
+export const accountFailureText: Record<ApiFailureKind, string> = {
   unauthenticated: apiMessages.sessionEnded,
   forbidden: apiMessages.forbidden,
   notFound: "Акаунтът не е намерен. Може вече да е изтрит.",
@@ -127,4 +130,29 @@ export const draftErrorText: Record<DraftErrorKind, string> = {
   emailInvalid: "Въведете валиден имейл (до 254 знака).",
   nameInvalid: "Използвайте до 100 знака без управляващи символи.",
   rolesRequired: "Изберете поне една роля.",
+};
+
+export const accountPaginationCopy: PaginationCopy = {
+  label: accountsCopy.pageLabel,
+  shown: accountsCopy.shown,
+  previous: accountsCopy.previous,
+  next: accountsCopy.next,
+  currentPage: accountsCopy.currentPage,
+};
+
+export const accountEmptyStateCopy: EmptyStateCopy = {
+  title: accountsCopy.emptyTitle,
+  body: accountsCopy.emptyBody,
+  create: accountsCopy.newAccount,
+  noResultsTitle: accountsCopy.noResultsTitle,
+  noResultsBody: accountsCopy.noResultsBody,
+  clearFilters: accountsCopy.clearFilters,
+};
+
+export const accountRemoveCopy: ConfirmRemoveCopy = {
+  title: accountsCopy.remove.title,
+  body: accountsCopy.remove.body,
+  confirm: accountsCopy.remove.confirm,
+  cancel: accountsCopy.cancel,
+  pending: accountsCopy.pending,
 };

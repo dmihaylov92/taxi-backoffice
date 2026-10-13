@@ -1,8 +1,10 @@
 import { formatDateTime } from "../../../common/domain/services/DateFormatService";
 import type { Account } from "../../domain/models/Account";
 import { accountsCopy } from "../assets/copy";
-import { AccountRowMenu, type RowAction } from "./AccountRowMenu";
+import { RowMenu } from "../../../common/ui/components/RowMenu";
 import { RoleBadge, StatusBadge } from "./Badges";
+
+export type RowAction = "edit" | "resend" | "deactivate" | "remove";
 
 interface AccountsTableProps {
   accounts: readonly Account[];
@@ -48,7 +50,7 @@ export function AccountsTable({
 }: AccountsTableProps) {
   return (
     <div className="table-wrap" aria-busy={busy}>
-      <table className="accounts-table">
+      <table className="data-table">
         <caption className="sr-only">{accountsCopy.tableCaption}</caption>
         <thead>
           <tr>
@@ -89,9 +91,15 @@ export function AccountsTable({
                 </td>
                 <td className="date-cell">{formatDateTime(account.createdAt)}</td>
                 <td className="actions-col">
-                  <AccountRowMenu
-                    accountName={name === accountsCopy.noName ? account.email : name}
-                    actions={actionsFor(account, currentUserId)}
+                  <RowMenu
+                    triggerLabel={accountsCopy.actionsFor(
+                      name === accountsCopy.noName ? account.email : name,
+                    )}
+                    items={actionsFor(account, currentUserId).map((action) => ({
+                      action,
+                      label: accountsCopy.menu[action],
+                      tone: action === "remove" ? "danger" : undefined,
+                    }))}
                     disabled={busyId === account.id}
                     onSelect={(action) => onAction(account, action)}
                   />

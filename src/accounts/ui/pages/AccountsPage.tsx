@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
 import { ConfirmDialog } from "../../../common/ui/components/ConfirmDialog";
+import { ConfirmRemoveDialog } from "../../../common/ui/components/ConfirmRemoveDialog";
+import { useApiAction } from "../../../common/ui/hooks/useApiAction";
 import { useDebouncedCallback } from "../../../common/ui/hooks/useDebouncedCallback";
+import { usePagedList } from "../../../common/ui/hooks/usePagedList";
 import {
   fromSearchParams,
   toDraft,
@@ -14,20 +17,26 @@ import {
 } from "../../domain/models/AccountDraft";
 import type { AccountFilters } from "../../domain/models/AccountFilters";
 import type { AccountApi } from "../../domain/services/AccountService";
-import { accountFailureText, accountsCopy } from "../assets/copy";
-import { AccountFormDialog } from "../components/AccountFormDialog";
-import type { RowAction } from "../components/AccountRowMenu";
-import { AccountsTable, displayName } from "../components/AccountsTable";
-import { AccountsToolbar } from "../components/AccountsToolbar";
-import { ConfirmRemoveDialog } from "../components/ConfirmRemoveDialog";
 import {
   EmptyState,
   ErrorState,
   LoadingState,
-} from "../components/ListStates";
-import { Pagination } from "../components/Pagination";
-import { useAccountAction } from "../components/useAccountAction";
-import { useAccountList } from "../components/useAccountList";
+} from "../../../common/ui/components/ListStates";
+import { Pagination } from "../../../common/ui/components/Pagination";
+import {
+  accountEmptyStateCopy,
+  accountFailureText,
+  accountPaginationCopy,
+  accountRemoveCopy,
+  accountsCopy,
+} from "../assets/copy";
+import { AccountFormDialog } from "../components/AccountFormDialog";
+import {
+  AccountsTable,
+  displayName,
+  type RowAction,
+} from "../components/AccountsTable";
+import { AccountsToolbar } from "../components/AccountsToolbar";
 
 const SEARCH_DEBOUNCE_MS = 300;
 
@@ -56,9 +65,7 @@ export function AccountsPage({
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [success, setSuccess] = useState<string>();
   const [busyId, setBusyId] = useState<string>();
-  const rowAction = useAccountAction(onSessionExpired);
-  const list = useAccountList(accounts, filters, page, onSessionExpired);
-  const { reload } = list;
+  const rowAction = useApiAction(onSessionExpired);
   const notice = rowAction.failure
     ? { tone: "error", text: accountFailureText[rowAction.failure.kind] }
     : success
@@ -71,6 +78,15 @@ export function AccountsPage({
       replace: true,
     });
   }
+
+  const list = usePagedList(
+    accounts,
+    filters,
+    page,
+    onSessionExpired,
+    (previous) => navigate(filters, previous),
+  );
+  const { reload } = list;
 
   const search = useDebouncedCallback(
     (text: string) => navigate({ ...filters, text }, 0),
@@ -171,24 +187,27 @@ export function AccountsPage({
     if (list.failure) {
       return (
         <ErrorState
+          title={accountsCopy.errorTitle}
           message={
             list.failure.kind === "unavailable"
               ? accountsCopy.errorBody
               : accountFailureText[list.failure.kind]
           }
+          retryLabel={accountsCopy.retry}
           onRetry={reload}
         />
       );
     }
 
     if (!list.page) {
-      return <LoadingState />;
+      return <LoadingState message={accountsCopy.loading} />;
     }
 
     if (list.page.items.length === 0) {
       return (
         <EmptyState
           filtered={filtered || page > 0}
+          copy={accountEmptyStateCopy}
           onCreate={() => setDialog({ kind: "create" })}
           onClear={clearFilters}
         />
@@ -209,6 +228,7 @@ export function AccountsPage({
           shown={list.page.items.length}
           hasNext={list.page.hasNext}
           disabled={list.loading}
+          copy={accountPaginationCopy}
           onPage={(next) => navigate(filters, next)}
         />
       </>
@@ -216,7 +236,7 @@ export function AccountsPage({
   }
 
   return (
-    <div className="accounts-page">
+    <div className="list-page">
       <header className="page-head">
         <div>
           <h1>{accountsCopy.title}</h1>
@@ -279,8 +299,14 @@ export function AccountsPage({
       )}
       {dialog.kind === "remove" && (
         <ConfirmRemoveDialog
-          name={displayName(dialog.account)}
-          email={dialog.account.email}
+          copy={accountRemoveCopy}
+          failureText={accountFailureText}
+          target={
+            <p className="remove-target">
+              <strong>{displayName(dialog.account)}</strong>
+              <span className="muted">{dialog.account.email}</span>
+            </p>
+          }
           onConfirm={() => remove(dialog.account)}
           onClose={closeDialog}
           onUnauthenticated={onSessionExpired}

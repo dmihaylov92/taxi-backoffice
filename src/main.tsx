@@ -5,7 +5,8 @@ import { App } from "./App";
 import "./common/ui/assets/styles.css";
 import "./common/ui/assets/approved-theme.css";
 import "./common/ui/assets/shell.css";
-import "./accounts/ui/assets/accounts.css";
+import "./common/ui/assets/lists.css";
+import "./rides/ui/assets/rides.css";
 import { consumeLinkToken } from "./auth/domain/services/ResetLinkService";
 
 createRoot(document.getElementById("root")!).render(

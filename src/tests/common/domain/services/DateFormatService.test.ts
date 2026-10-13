@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { formatDateTime } from "../../../../common/domain/services/DateFormatService";
+import {
+  formatDate,
+  formatDateTime,
+} from "../../../../common/domain/services/DateFormatService";
 
 describe("DateFormatService", () => {
   it("formats as dd.MM.yyyy HH:mm with zero padding in local time", () => {
@@ -10,5 +13,14 @@ describe("DateFormatService", () => {
 
   it("returns an empty string for an unparseable timestamp", () => {
     expect(formatDateTime("not-a-date")).toBe("");
+  });
+
+  it("formats a calendar date without any time-zone shift", () => {
+    expect(formatDate("2026-01-05")).toBe("05.01.2026");
+  });
+
+  it("returns an empty string for anything but yyyy-MM-dd", () => {
+    expect(formatDate("2026-01-05T10:00:00Z")).toBe("");
+    expect(formatDate("garbage")).toBe("");
   });
 });
