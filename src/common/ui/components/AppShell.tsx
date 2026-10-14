@@ -2,31 +2,24 @@ import type { ReactNode } from "react";
 import { NavLink } from "react-router";
 import { brand, common, shell } from "../assets/copy";
 
+export interface NavItem {
+  label: string;
+  /** Modules without a screen are shown as visibly unavailable rather than pretending. */
+  to?: string;
+}
+
 interface AppShellProps {
   email: string;
   roleLabel: string;
   loggingOut: boolean;
   onLogout: () => void;
+  /** Only modules the account may open; hidden ones never appear. */
+  items: readonly NavItem[];
   children: ReactNode;
 }
 
-interface NavEntry {
-  label: string;
-  /** Only modules that exist are links; the rest stay visibly unavailable rather than pretending. */
-  to?: string;
-}
-
-const NAV_ENTRIES: readonly NavEntry[] = [
-  { label: shell.items.home },
-  { label: shell.items.orders },
-  { label: shell.items.drivers },
-  { label: shell.items.customers },
-  { label: shell.items.cars, to: "/cars" },
-  { label: shell.items.accounts, to: "/accounts" },
-  { label: shell.items.settings },
-];
-
 export function AppShell({
+  items,
   email,
   roleLabel,
   loggingOut,
@@ -46,7 +39,7 @@ export function AppShell({
           </div>
           <nav aria-label={shell.navLabel}>
             <ul>
-              {NAV_ENTRIES.map((entry) => (
+              {items.map((entry) => (
                 <li key={entry.label}>
                   {entry.to ? (
                     <NavLink to={entry.to} className="nav-item">

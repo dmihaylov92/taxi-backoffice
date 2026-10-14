@@ -1,10 +1,18 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { Icon } from "./Icon";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
+import { Icon, type IconName } from "./Icon";
 
 export interface RowMenuItem<Action extends string> {
   action: Action;
   label: string;
   tone?: "danger";
+  icon?: IconName;
+  /** Draws a divider above the item, to set a destructive action apart. */
+  separated?: boolean;
+  /**
+   * Keeps the item visible but unavailable and says why. It stays focusable so the reason is
+   * reachable by keyboard, and selecting it does nothing.
+   */
+  disabledReason?: string;
 }
 
 interface RowMenuProps<Action extends string> {
@@ -109,21 +117,46 @@ export function RowMenu<Action extends string>({
       {open && (
         <ul id={menuId} role="menu" className="menu">
           {items.map((item) => (
-            <li key={item.action} role="none">
-              <button
-                type="button"
-                role="menuitem"
-                className={item.tone === "danger" ? "danger" : undefined}
-                onClick={() => {
-                  // Focus the trigger first so a dialog opened next returns focus here, not to <body>.
-                  trigger.current?.focus();
-                  setOpen(false);
-                  onSelect(item.action);
-                }}
-              >
-                {item.label}
-              </button>
-            </li>
+            <Fragment key={item.action}>
+              {item.separated && (
+                <li role="separator" className="menu-separator" />
+              )}
+              <li role="none">
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={item.tone === "danger" ? "danger" : undefined}
+                  aria-disabled={item.disabledReason ? true : undefined}
+                  aria-describedby={
+                    item.disabledReason ? `${menuId}-${item.action}` : undefined
+                  }
+                  onClick={() => {
+                    if (item.disabledReason) {
+                      return;
+                    }
+
+                    // Focus the trigger first so a dialog opened next returns focus here, not to <body>.
+                    trigger.current?.focus();
+                    setOpen(false);
+                    onSelect(item.action);
+                  }}
+                >
+                  {item.icon && <Icon name={item.icon} size={18} />}
+                  <span className="menu-label">
+                    {item.label}
+                    {item.disabledReason && (
+                      <span
+                        className="menu-reason"
+                        id={`${menuId}-${item.action}`}
+                        aria-hidden="true"
+                      >
+                        {item.disabledReason}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              </li>
+            </Fragment>
           ))}
         </ul>
       )}

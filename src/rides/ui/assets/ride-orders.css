@@ -1,0 +1,641 @@
+/* Ride (Поръчки) screens. Tokens come from the shared theme; nothing here redefines them. */
+
+/* Toolbar: status is live, the other controls are visibly unavailable. */
+.rides-toolbar {
+  grid-template-columns: minmax(220px, 1fr) repeat(3, 180px);
+}
+
+.rides-toolbar input:disabled,
+.rides-toolbar select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Table: every column, including the row menu, must fit the 1280px content width. */
+.rides-table {
+  min-width: 960px;
+}
+
+.rides-table th,
+.rides-table td {
+  padding-inline: 10px;
+}
+
+.rides-table thead th.distance-col {
+  min-width: 96px;
+  white-space: normal;
+}
+
+.rides-table .actions-col {
+  width: 56px;
+}
+
+.driver-cell-text > span:first-child {
+  white-space: nowrap;
+}
+
+.data-table tbody th.ride-number {
+  display: table-cell;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.phone-cell,
+.distance-cell {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.route-cell {
+  max-width: 220px;
+}
+
+.route-cell > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-destination {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Badges: label always visible, icon and tint only reinforce it. */
+.badge.ride-status,
+.badge.ride-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge.ride-pending {
+  border-color: #b8742a;
+  background: #2b1d0c;
+  color: #ffc46b;
+}
+
+.badge.ride-accepted {
+  border-color: #2f7fbf;
+  background: #0d2236;
+  color: #8fcdf7;
+}
+
+.badge.ride-finished {
+  border-color: #1f8a4c;
+  background: #0f2a1b;
+  color: #7ee2a8;
+}
+
+.badge.ride-rejected {
+  border-color: #b3424a;
+  background: #34151a;
+  color: #ffb0b5;
+}
+
+.badge.ride-type-normal {
+  border-color: var(--control);
+  color: var(--ink);
+}
+
+.badge.ride-type-business {
+  border-color: #6b5bd2;
+  background: #1e1a3d;
+  color: #c4bcff;
+}
+
+/* Driver and read-only availability */
+.driver-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar.small {
+  width: 28px;
+  height: 28px;
+  font-size: 11px;
+}
+
+.driver-cell-text {
+  display: grid;
+  gap: 0;
+  line-height: 1.3;
+}
+
+.availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.availability-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+}
+
+.availability-dot.available {
+  background: #3ddc84;
+}
+
+.availability-dot.busy {
+  background: #ffd166;
+}
+
+.availability-dot.offline {
+  border-color: var(--muted);
+}
+
+/* Row menu additions */
+.menu .menu-separator {
+  height: 1px;
+  margin: 6px 4px;
+  background: var(--line);
+}
+
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu button[aria-disabled="true"] {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.menu-label {
+  display: grid;
+}
+
+.menu-reason {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Feedback */
+.toast-region {
+  display: grid;
+  min-height: 0;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 8px 12px 16px;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.toast.success {
+  border-left-color: #3ddc84;
+}
+
+.toast.success svg {
+  color: #3ddc84;
+}
+
+.toast.pending {
+  border-left-color: #4a9fe0;
+}
+
+.toast-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-text span {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.banner.with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Details */
+.detail-list {
+  display: grid;
+  margin: 0;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  min-height: 40px;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.detail-row dt {
+  color: var(--muted);
+}
+
+.detail-row dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.details-foot {
+  flex-wrap: wrap;
+}
+
+.details-secondary {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.btn[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn.danger-outline {
+  border-color: #b3424a;
+  color: #ffb0b5;
+}
+
+/* Form */
+.ride-form .form-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ride-form .field select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  background: #192229;
+  color: var(--ink);
+  padding: 10px 12px;
+}
+
+.ride-form .field select[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+
+.ride-form .field input[type="datetime-local"] {
+  padding-left: 12px;
+}
+
+.type-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.type-card {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--control);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.type-card input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.type-card:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.type-card.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.type-card.unavailable {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.type-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* The mark states the selection with a shape, so it does not rely on the tint alone. */
+.type-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-left: auto;
+  border: 1.5px solid var(--control);
+  border-radius: 50%;
+}
+
+.type-card.selected .type-mark {
+  border: 0;
+  color: var(--accent);
+}
+
+.type-card-body {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.phone-input {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  background: #192229;
+}
+
+.phone-input:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.phone-input.invalid {
+  border-color: var(--danger);
+}
+
+.phone-prefix {
+  display: grid;
+  place-items: center;
+  padding: 0 12px;
+  border-right: 1px solid var(--line);
+  font-weight: 600;
+}
+
+.field .phone-input input {
+  border: 0;
+  background: none;
+  padding-left: 12px;
+}
+
+.field .phone-input input:focus-visible {
+  outline: none;
+}
+
+.address-wrap {
+  position: relative;
+}
+
+.address-popup {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 6;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.5);
+}
+
+.address-popup ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.address-popup li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.address-popup li.active,
+.address-popup li:hover {
+  background: var(--canvas);
+}
+
+.address-popup li > span {
+  display: grid;
+}
+
+.address-popup .hint {
+  padding: 8px 10px 4px;
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+}
+
+.address-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  color: var(--muted);
+}
+
+.field-label {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.readonly-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--canvas);
+  color: var(--muted);
+}
+
+.distance-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px dashed var(--control);
+  border-radius: 8px;
+}
+
+.distance-row > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.distance-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.note svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.note.info {
+  border-color: #2f5f8f;
+  background: #0d1f33;
+}
+
+.note.warning {
+  border-color: #8a6a1f;
+  background: #2b2110;
+  color: #ffe2a0;
+}
+
+/* Confirmations and the driver picker */
+.summary-card {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+
+.ride-summary {
+  display: grid;
+  gap: 2px;
+}
+
+.consequences {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.current-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.driver-picker {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.driver-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.driver-option:last-child {
+  border-bottom: 0;
+}
+
+.driver-option.selected {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.driver-option.disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+}
+
+.driver-option:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.driver-option input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.driver-option-text {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.driver-option-state {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.driver-option .reason {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffc46b;
+}
+
+.tag {
+  padding: 1px 8px;
+  border: 1px solid var(--control);
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .rides-toolbar,
+  .ride-form .form-grid,
+  .type-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detail-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding-block: 8px;
+  }
+}

@@ -22,7 +22,7 @@ function renderCars({
   path = "/cars",
 }: {
   cars?: Partial<CarApi>;
-  identity?: { id: string; email: string; roles: ("ADMIN" | "DISPATCHER")[] };
+  identity?: { id: string; email: string; roles: ("ADMIN" | "DISPATCHER" | "DRIVER")[] };
   path?: string;
 } = {}) {
   const api: CarApi = {
@@ -88,9 +88,9 @@ describe("CarsPage (mocked car port, not live integration)", () => {
     ).toHaveAttribute("href", "/cars");
   });
 
-  it("sends non-administrators to the holding page", async () => {
+  it("sends accounts without staff roles to the holding page", async () => {
     renderCars({
-      identity: { id: "x", email: "d@taxi.test", roles: ["DISPATCHER"] },
+      identity: { id: "x", email: "d@taxi.test", roles: ["DRIVER"] },
     });
 
     expect(

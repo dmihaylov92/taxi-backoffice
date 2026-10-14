@@ -11,8 +11,13 @@ export class DriverLookupClient {
     text: string,
     size: number,
     signal?: AbortSignal,
+    scope: "ACTIVE" | "ALL" = "ACTIVE",
   ): Promise<unknown> {
-    const query = new URLSearchParams({ role: "DRIVER", status: "ACTIVE" });
+    const query = new URLSearchParams({ role: "DRIVER" });
+
+    if (scope === "ACTIVE") {
+      query.set("status", "ACTIVE");
+    }
 
     if (text) {
       query.set("q", text);

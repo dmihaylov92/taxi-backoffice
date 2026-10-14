@@ -7,6 +7,7 @@ import "./common/ui/assets/approved-theme.css";
 import "./common/ui/assets/shell.css";
 import "./common/ui/assets/lists.css";
 import "./rides/ui/assets/rides.css";
+import "./rides/ui/assets/ride-orders.css";
 import { consumeLinkToken } from "./auth/domain/services/ResetLinkService";
 
 createRoot(document.getElementById("root")!).render(

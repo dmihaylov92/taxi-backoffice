@@ -9,7 +9,7 @@ import { bg } from "../../../auth/ui/assets/copy";
 export const identity = {
   id: "fixture-user",
   email: "staff@example.test",
-  roles: ["DISPATCHER"] as ["DISPATCHER"],
+  roles: ["DRIVER"] as ["DRIVER"],
 };
 
 export function renderApp(

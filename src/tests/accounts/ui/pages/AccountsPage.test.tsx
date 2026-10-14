@@ -22,7 +22,7 @@ function renderAccounts({
   path = "/accounts",
 }: {
   accounts?: Partial<AccountApi>;
-  identity?: { id: string; email: string; roles: ("ADMIN" | "DISPATCHER")[] };
+  identity?: { id: string; email: string; roles: ("ADMIN" | "DISPATCHER" | "DRIVER")[] };
   path?: string;
 } = {}) {
   const api: AccountApi = {
@@ -81,9 +81,9 @@ describe("AccountsPage (mocked account port, not live integration)", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("sends non-administrators to the holding page", async () => {
+  it("sends accounts without staff roles to the holding page", async () => {
     renderAccounts({
-      identity: { id: "x", email: "d@taxi.test", roles: ["DISPATCHER"] },
+      identity: { id: "x", email: "d@taxi.test", roles: ["DRIVER"] },
     });
 
     expect(

@@ -34,9 +34,7 @@ export const shell = {
   userLabel: "Текущ потребител",
   items: {
     home: "Начало",
-    orders: "Поръчки",
-    drivers: "Шофьори",
-    customers: "Клиенти",
+    rides: "Поръчки",
     cars: "Автомобили",
     accounts: "Акаунти",
     settings: "Настройки",
