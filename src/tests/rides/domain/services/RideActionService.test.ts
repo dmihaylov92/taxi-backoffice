@@ -12,14 +12,20 @@ describe("RideActionService", () => {
       "view",
       "edit",
       "assign",
+      "broadcast",
       "reject",
       "remove",
     ]);
-    expect(rowActions("ACCEPTED")).toEqual(rowActions("PENDING"));
-    expect(rowActions("FINISHED")).toEqual([
+    expect(rowActions("ACCEPTED")).toEqual([
       "view",
       "edit",
       "assign",
+      "reject",
+      "remove",
+    ]);
+    expect(rowActions("FINISHED")).toEqual([
+      "view",
+      "edit",
       "reject",
       "reopen",
       "remove",
@@ -27,18 +33,26 @@ describe("RideActionService", () => {
     expect(rowActions("REJECTED")).toEqual([
       "view",
       "edit",
-      "assign",
       "reopen",
       "remove",
     ]);
   });
 
-  it("never leaves a status without edit, assign and delete", () => {
+  it("never leaves a status without edit and delete", () => {
     for (const status of ["PENDING", "ACCEPTED", "FINISHED", "REJECTED"] as const) {
       expect(rowActions(status)).toEqual(
-        expect.arrayContaining(["edit", "assign", "remove"]),
+        expect.arrayContaining(["edit", "remove"]),
       );
     }
+  });
+
+  it("assigns only pending or accepted rides and sends only pending ones", () => {
+    expect(rowActions("PENDING")).toContain("assign");
+    expect(rowActions("ACCEPTED")).toContain("assign");
+    expect(rowActions("FINISHED")).not.toContain("assign");
+    expect(rowActions("REJECTED")).not.toContain("assign");
+    expect(rowActions("ACCEPTED")).not.toContain("broadcast");
+    expect(rowActions("FINISHED")).not.toContain("broadcast");
   });
 
   it("reopens only finished or rejected rides and never rejects twice", () => {
@@ -47,8 +61,8 @@ describe("RideActionService", () => {
     expect(rowActions("REJECTED")).not.toContain("reject");
   });
 
-  it("keeps the details footer to assign and reject, or reopen", () => {
-    expect(detailActions("PENDING")).toEqual(["assign", "reject"]);
+  it("keeps the details footer to assign, send and reject, or reopen", () => {
+    expect(detailActions("PENDING")).toEqual(["assign", "broadcast", "reject"]);
     expect(detailActions("ACCEPTED")).toEqual(["assign", "reject"]);
     expect(detailActions("FINISHED")).toEqual(["reopen"]);
     expect(detailActions("REJECTED")).toEqual(["reopen"]);

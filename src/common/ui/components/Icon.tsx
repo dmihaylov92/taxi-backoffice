@@ -122,6 +122,7 @@ const GLYPHS = {
       <path d="M12 10v4M12 17h.01" />
     </>
   ),
+  send: <path d="m21 3-9.5 18-2.5-7.5L3 11 21 3ZM9 13.5 21 3" />,
 } as const;
 
 export type IconName = keyof typeof GLYPHS;

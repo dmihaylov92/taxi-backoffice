@@ -8,28 +8,33 @@ export type RideAction =
   | "view"
   | "edit"
   | "assign"
+  | "broadcast"
   | "reject"
   | "reopen"
   | "remove";
 
 /**
- * Operations offered in a list row. No status is a dead end: everything can be viewed, edited,
- * reassigned and deleted, rejection is hidden once a ride is rejected, and only finished or
- * rejected rides can be reopened.
+ * Operations offered in a list row. No status is a dead end: everything can be viewed, edited and
+ * deleted, only pending and accepted rides can be assigned or reassigned (the others are reopened
+ * first), only pending rides are sent to the drivers, rejection is hidden once a ride is
+ * rejected, and only finished or rejected rides can be reopened.
  */
 export function rowActions(status: RideStatus): RideAction[] {
   switch (status) {
-    case "PENDING":
+    case "PENDING": {
+      return ["view", "edit", "assign", "broadcast", "reject", "remove"];
+    }
+
     case "ACCEPTED": {
       return ["view", "edit", "assign", "reject", "remove"];
     }
 
     case "FINISHED": {
-      return ["view", "edit", "assign", "reject", "reopen", "remove"];
+      return ["view", "edit", "reject", "reopen", "remove"];
     }
 
     case "REJECTED": {
-      return ["view", "edit", "assign", "reopen", "remove"];
+      return ["view", "edit", "reopen", "remove"];
     }
   }
 }
@@ -37,7 +42,10 @@ export function rowActions(status: RideStatus): RideAction[] {
 /** The shorter set of secondary operations in the details footer; editing is always primary there. */
 export function detailActions(status: RideStatus): RideAction[] {
   switch (status) {
-    case "PENDING":
+    case "PENDING": {
+      return ["assign", "broadcast", "reject"];
+    }
+
     case "ACCEPTED": {
       return ["assign", "reject"];
     }

@@ -29,8 +29,33 @@ describe("RideService", () => {
       driverOnCreate: false,
       driverNotifications: false,
     });
-    expect(service.assign).toBeUndefined();
-    expect(service.reopen).toBeUndefined();
+    expect(service.broadcast).toBeUndefined();
+  });
+
+  it("assigns a driver and reopens a ride, returning the stored ride", async () => {
+    const assign = vi.fn().mockResolvedValue(wireRide("r1", "ACCEPTED", "d1"));
+    const reopen = vi.fn().mockResolvedValue(wireRide("r1", "PENDING"));
+    const service = serviceWith({ assign, reopen });
+
+    const assigned = await service.assign?.("r1", "d1");
+    const reopened = await service.reopen?.("r1");
+
+    expect(assign).toHaveBeenCalledWith("r1", "d1");
+    expect(assigned).toMatchObject({ status: "ACCEPTED", driverId: "d1" });
+    expect(reopen).toHaveBeenCalledWith("r1");
+    expect(reopened).toMatchObject({ status: "PENDING" });
+    expect(reopened?.driverId).toBeUndefined();
+  });
+
+  it("propagates a refused assignment or reopening", async () => {
+    const refused = new Error("conflict");
+    const service = serviceWith({
+      assign: vi.fn().mockRejectedValue(refused),
+      reopen: vi.fn().mockRejectedValue(refused),
+    });
+
+    await expect(service.assign?.("r1", "d1")).rejects.toThrow("conflict");
+    await expect(service.reopen?.("r1")).rejects.toThrow("conflict");
   });
 
   it("lists a page with the status filter and signal", async () => {

@@ -25,4 +25,6 @@ export const NO_RIDE_CAPABILITIES: RideCapabilities = {
 export interface RideOperations {
   assign: boolean;
   reopen: boolean;
+  /** Resending a pending ride to all drivers. */
+  broadcast: boolean;
 }

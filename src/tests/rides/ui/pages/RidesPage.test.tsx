@@ -459,6 +459,7 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
         "Преглед",
         "Редактирай",
         `${ridesCopy.menu.assign}${ridesCopy.unavailable}`,
+        `${ridesCopy.menu.broadcast}${ridesCopy.unavailable}`,
         "Откажи",
         "Изтрий",
       ]);
@@ -476,7 +477,6 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
       expect(await menuLabels(user, "001046")).toEqual([
         "Преглед",
         "Редактирай",
-        `${ridesCopy.menu.reassign}${ridesCopy.unavailable}`,
         "Откажи",
         `${ridesCopy.menu.reopen}${ridesCopy.unavailable}`,
         "Изтрий",
@@ -486,7 +486,6 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
       expect(await menuLabels(user, "001045")).toEqual([
         "Преглед",
         "Редактирай",
-        `${ridesCopy.menu.reassign}${ridesCopy.unavailable}`,
         `${ridesCopy.menu.reopen}${ridesCopy.unavailable}`,
         "Изтрий",
       ]);
@@ -505,6 +504,23 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
       expect(assign).toHaveAccessibleDescription(ridesCopy.unavailable);
 
       await user.click(assign);
+
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    it("shows sending to the drivers as unavailable and does nothing when chosen", async () => {
+      const { user } = renderRides();
+
+      await openMenu(user, "001048");
+
+      const broadcast = screen.getByRole("menuitem", {
+        name: ridesCopy.menu.broadcast,
+      });
+
+      expect(broadcast).toHaveAttribute("aria-disabled", "true");
+      expect(broadcast).toHaveAccessibleDescription(ridesCopy.unavailable);
+
+      await user.click(broadcast);
 
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
@@ -565,6 +581,28 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
       ).not.toBeInTheDocument();
       expect(
         within(dialog).getByRole("button", { name: ridesCopy.details.edit }),
+      ).toBeVisible();
+    });
+
+    it("keeps sending a pending ride to the drivers disabled in the footer", async () => {
+      const { user } = renderRides();
+
+      await screen.findByRole("table");
+      await chooseAction(user, "001048", ridesCopy.menu.view);
+
+      const dialog = screen.getByRole("dialog", {
+        name: ridesCopy.details.title,
+      });
+      const broadcast = within(dialog).getByRole("button", {
+        name: ridesCopy.menu.broadcast,
+      });
+
+      expect(broadcast).toHaveAttribute("aria-disabled", "true");
+
+      await user.click(broadcast);
+
+      expect(
+        screen.getByRole("dialog", { name: ridesCopy.details.title }),
       ).toBeVisible();
     });
 
@@ -1526,6 +1564,26 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
         ridesCopy.assign.conflict,
       );
       expect(screen.queryByText(ridesCopy.notices.assigned)).not.toBeInTheDocument();
+    });
+
+    it("explains an account that cannot drive instead of blaming the phone or addresses", async () => {
+      const assign = vi.fn().mockRejectedValue(new ApiError(400));
+      const { user } = renderRides({ rides: { assign } });
+
+      await screen.findByRole("table");
+      await chooseAction(user, "001048", ridesCopy.menu.assign);
+      await user.click(
+        await screen.findByRole("radio", { name: /Петър Стоянов/ }),
+      );
+      await user.click(
+        screen.getByRole("button", {
+          name: ridesCopy.assign.submit("Петър Стоянов"),
+        }),
+      );
+
+      expect(await screen.findByRole("alert")).toHaveTextContent(
+        ridesCopy.assign.invalid,
+      );
     });
   });
 });

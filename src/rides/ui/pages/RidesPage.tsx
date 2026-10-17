@@ -73,7 +73,11 @@ export function RidesPage({
   const [headingFocus, setHeadingFocus] = useState(0);
   const filtered = Boolean(filters.status);
   const operations: RideOperations = useMemo(
-    () => ({ assign: Boolean(rides.assign), reopen: Boolean(rides.reopen) }),
+    () => ({
+      assign: Boolean(rides.assign),
+      reopen: Boolean(rides.reopen),
+      broadcast: Boolean(rides.broadcast),
+    }),
     [rides],
   );
 
@@ -253,6 +257,11 @@ export function RidesPage({
           setDialog({ kind: "assign", ride });
         }
 
+        break;
+      }
+
+      case "broadcast": {
+        // Disabled in every menu until the API can resend rides; nothing to open yet.
         break;
       }
 

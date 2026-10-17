@@ -31,6 +31,20 @@ export class RideClient {
     return response.json();
   }
 
+  async assign(id: string, driverId: string): Promise<unknown> {
+    const response = await this.api.send("POST", `${this.path(id)}/assign`, {
+      driverId,
+    });
+
+    return response.json();
+  }
+
+  async reopen(id: string): Promise<unknown> {
+    const response = await this.api.send("POST", `${this.path(id)}/reopen`);
+
+    return response.json();
+  }
+
   async remove(id: string): Promise<void> {
     await this.api.send("DELETE", this.path(id));
   }

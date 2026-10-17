@@ -83,6 +83,7 @@ export function RideDetailsDialog({
   function secondary(action: RideAction, icon: IconName, label: string) {
     const unavailable =
       (action === "assign" && !operations.assign) ||
+      (action === "broadcast" && !operations.broadcast) ||
       (action === "reopen" && !operations.reopen);
 
     return (
@@ -173,6 +174,8 @@ export function RideDetailsDialog({
               "userMove",
               ride.driverId ? ridesCopy.menu.reassign : ridesCopy.menu.assign,
             )}
+          {actions.includes("broadcast") &&
+            secondary("broadcast", "send", ridesCopy.menu.broadcast)}
           {actions.includes("reject") &&
             secondary("reject", "ban", ridesCopy.menu.reject)}
           {actions.includes("reopen") &&

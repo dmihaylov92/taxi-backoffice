@@ -43,6 +43,8 @@ export interface RideApi {
   assign?(id: string, driverId: string): Promise<Ride>;
   /** Present only when the API can reopen a finished or rejected ride. */
   reopen?(id: string): Promise<Ride>;
+  /** Present only when the API can resend a pending ride to all drivers. */
+  broadcast?(id: string): Promise<void>;
 }
 
 export class RideService implements RideApi {
@@ -82,6 +84,14 @@ export class RideService implements RideApi {
 
   async reject(id: string): Promise<Ride> {
     return toRide(await this.client.reject(id));
+  }
+
+  async assign(id: string, driverId: string): Promise<Ride> {
+    return toRide(await this.client.assign(id, driverId));
+  }
+
+  async reopen(id: string): Promise<Ride> {
+    return toRide(await this.client.reopen(id));
   }
 
   remove(id: string): Promise<void> {

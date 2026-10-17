@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toApiFailure } from "../../../common/domain/mappers/ApiFailureMapper";
+import type { ApiFailureKind } from "../../../common/domain/models/ApiFailure";
 import { Icon } from "../../../common/ui/components/Icon";
 import { Modal } from "../../../common/ui/components/Modal";
 import { PendingButton } from "../../../common/ui/components/PendingButton";
@@ -35,6 +36,23 @@ interface AssignDriverDialogProps {
   onReload: () => void;
   onClose: () => void;
   onUnauthenticated: () => void;
+}
+
+/** Assignment has its own wording for a conflict and for an account that cannot drive. */
+function assignFailureText(kind: ApiFailureKind): string {
+  switch (kind) {
+    case "conflict": {
+      return ridesCopy.assign.conflict;
+    }
+
+    case "invalid": {
+      return ridesCopy.assign.invalid;
+    }
+
+    default: {
+      return rideFailureText[kind];
+    }
+  }
 }
 
 function matches(driver: RideDriver, text: string): boolean {
@@ -237,9 +255,7 @@ export function AssignDriverDialog({
             {kind && (
               <div className="banner error with-action" role="alert">
                 <span>
-                  {kind === "conflict"
-                    ? ridesCopy.assign.conflict
-                    : rideFailureText[kind]}
+                  {assignFailureText(kind)}
                 </span>
                 {STALE_FAILURES.includes(kind) && (
                   <button type="button" className="btn" onClick={onReload}>

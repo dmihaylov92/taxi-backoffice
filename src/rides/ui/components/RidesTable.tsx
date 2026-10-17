@@ -51,6 +51,15 @@ function menuItem(
       };
     }
 
+    case "broadcast": {
+      return {
+        action,
+        label: ridesCopy.menu.broadcast,
+        icon: "send",
+        disabledReason: operations.broadcast ? undefined : ridesCopy.unavailable,
+      };
+    }
+
     case "reject": {
       return {
         action,

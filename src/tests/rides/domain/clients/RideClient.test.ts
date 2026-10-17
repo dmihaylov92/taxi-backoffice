@@ -79,6 +79,31 @@ describe("RideClient", () => {
     ]);
   });
 
+  it("assigns a driver and reopens against an encoded id", async () => {
+    const { api, fetcher } = clientWith([
+      csrfResponse(),
+      json(200, {}),
+      json(200, {}),
+    ]);
+    const client = new RideClient(api);
+
+    await client.assign("a/b", "driver-1");
+    await client.reopen("a/b");
+
+    const calls = fetcher.mock.calls.filter(
+      (call) => call[0] !== "/api/v1/auth/session/csrf",
+    );
+
+    expect(calls.map((call) => [call[0], call[1].method, call[1].body])).toEqual([
+      [
+        "/api/v1/rides/a%2Fb/assign",
+        "POST",
+        JSON.stringify({ driverId: "driver-1" }),
+      ],
+      ["/api/v1/rides/a%2Fb/reopen", "POST", undefined],
+    ]);
+  });
+
   it("throws the API status when the request is refused", async () => {
     const { api } = clientWith([json(403)]);
 
