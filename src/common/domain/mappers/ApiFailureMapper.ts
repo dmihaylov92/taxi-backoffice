@@ -42,5 +42,11 @@ function kindFor(status: number | undefined): ApiFailureKind {
 }
 
 export function toApiFailure(error: unknown): ApiFailure {
-  return { kind: kindFor(error instanceof ApiError ? error.status : undefined) };
+  if (!(error instanceof ApiError)) {
+    return { kind: kindFor(undefined) };
+  }
+
+  return error.violations.length > 0
+    ? { kind: kindFor(error.status), violations: error.violations }
+    : { kind: kindFor(error.status) };
 }

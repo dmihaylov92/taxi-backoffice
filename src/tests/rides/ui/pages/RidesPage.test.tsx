@@ -9,6 +9,7 @@ import { bg } from "../../../../auth/ui/assets/copy";
 import { ApiError } from "../../../../common/domain/models/ApiError";
 import type { Role } from "../../../../common/domain/models/Role";
 import { ApiClient } from "../../../../common/domain/clients/ApiClient";
+import type { AddressSearchApi } from "../../../../common/domain/services/AddressSearchService";
 import { DriverLookupClient } from "../../../../rides/domain/clients/DriverLookupClient";
 import { RideClient } from "../../../../rides/domain/clients/RideClient";
 import { NO_RIDE_CAPABILITIES } from "../../../../rides/domain/models/RideCapabilities";
@@ -19,6 +20,8 @@ import {
 import { csrfResponse, jsonResponse } from "../../../common/http";
 import {
   ridesCopy,
+  rideDraftErrorText,
+  rideRejectedText,
   rideFailureText,
 } from "../../../../rides/ui/assets/rideCopy";
 import {
@@ -41,10 +44,12 @@ type User = ReturnType<typeof userEvent.setup>;
 function renderRides({
   rides = {},
   service,
+  addressSearch,
   identity = dispatcher,
   path = "/rides",
 }: {
   rides?: Partial<RideApi>;
+  addressSearch?: AddressSearchApi;
   /** A complete port, such as the real service over a fake transport. */
   service?: RideApi;
   identity?: { id: string; email: string; roles: Role[] };
@@ -64,7 +69,12 @@ function renderRides({
 
   render(
     <MemoryRouter initialEntries={[path]}>
-      <App auth={auth} accounts={accounts} rides={api} />
+      <App
+        auth={auth}
+        accounts={accounts}
+        rides={api}
+        addressSearch={addressSearch}
+      />
     </MemoryRouter>,
   );
 
@@ -884,6 +894,65 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
       expect(screen.getByRole("dialog")).toBeVisible();
     });
 
+    it("shows the API's rejection beside the field it named and focuses it", async () => {
+      const { user } = renderRides({
+        rides: {
+          create: vi
+            .fn()
+            .mockRejectedValue(new ApiError(400, [
+              { field: "destinationLatitude", code: "OUT_OF_RANGE" },
+            ])),
+        },
+      });
+
+      await openCreate(user);
+      await fillCreateForm(user);
+      await user.click(
+        screen.getByRole("button", { name: ridesCopy.create.submit }),
+      );
+
+      const dialog = screen.getByRole("dialog");
+      const destination = within(dialog).getByLabelText(/Дестинация/);
+
+      expect(
+        await within(dialog).findByText(rideRejectedText.destinationAddress?.OUT_OF_RANGE ?? ""),
+      ).toBeVisible();
+      expect(destination).toHaveAttribute("aria-invalid", "true");
+      expect(destination).toHaveFocus();
+      expect(within(dialog).getByLabelText(/Адрес за вземане/)).not.toHaveAttribute(
+        "aria-invalid",
+      );
+    });
+
+    it("shows the specific reason for each refused field and focuses the first in form order", async () => {
+      const { user } = renderRides({
+        rides: {
+          create: vi.fn().mockRejectedValue(
+            new ApiError(400, [
+              { field: "pickupAddress", code: "TOO_LONG" },
+              { field: "phoneNumber", code: "INVALID_FORMAT" },
+            ]),
+          ),
+        },
+      });
+
+      await openCreate(user);
+      await fillCreateForm(user);
+      await user.click(
+        screen.getByRole("button", { name: ridesCopy.create.submit }),
+      );
+
+      const dialog = screen.getByRole("dialog");
+
+      expect(
+        await within(dialog).findByText(rideDraftErrorText.addressTooLong),
+      ).toBeVisible();
+      expect(
+        within(dialog).getByText(rideDraftErrorText.phoneInvalid),
+      ).toBeVisible();
+      expect(within(dialog).getByLabelText(/Телефон на клиента/)).toHaveFocus();
+    });
+
     it("clears the filter and returns to the first page after creating", async () => {
       const { api, user } = renderRides({ path: "/rides?status=REJECTED&page=1" });
 
@@ -905,10 +974,20 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
     });
 
     it("uses address proposals when a provider is available", async () => {
-      const suggestAddresses = vi.fn().mockResolvedValue([
-        { id: "1", label: "гр. Хасково, бул. Съединение 52" },
-      ]);
-      const { api, user } = renderRides({ rides: { suggestAddresses } });
+      const addressSearch: AddressSearchApi = {
+        debounceMs: 10,
+        minLength: 3,
+        search: vi
+          .fn()
+          .mockResolvedValue([
+            { id: "1", label: "гр. Хасково, бул. Съединение 52" },
+          ]),
+        resolve: vi.fn().mockResolvedValue({
+          label: "гр. Хасково, бул. Съединение 52",
+          coordinates: { latitude: 41.93, longitude: 25.55 },
+        }),
+      };
+      const { api, user } = renderRides({ addressSearch });
 
       await openCreate(user);
       await user.type(screen.getByLabelText(/Телефон на клиента/), "888123456");
@@ -925,6 +1004,7 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
         "гр. Хасково, бул. Съединение 52",
       );
 
+      await waitFor(() => expect(addressSearch.resolve).toHaveBeenCalled());
       await user.click(
         screen.getByRole("button", { name: ridesCopy.create.submit }),
       );
@@ -932,6 +1012,8 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
       expect(api.create).toHaveBeenCalledWith(
         expect.objectContaining({
           destinationAddress: "гр. Хасково, бул. Съединение 52",
+          destinationCoordinates: { latitude: 41.93, longitude: 25.55 },
+          pickupCoordinates: undefined,
         }),
       );
     });

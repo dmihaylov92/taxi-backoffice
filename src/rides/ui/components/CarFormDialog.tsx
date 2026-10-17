@@ -3,16 +3,23 @@ import { Field } from "../../../common/ui/components/Field";
 import { Modal } from "../../../common/ui/components/Modal";
 import { PendingButton } from "../../../common/ui/components/PendingButton";
 import { useApiAction } from "../../../common/ui/hooks/useApiAction";
+import { useRejectedFields } from "../../../common/ui/hooks/useRejectedFields";
 import type {
   CarDraft,
   DraftErrors,
   DraftField,
 } from "../../domain/models/CarDraft";
+import { CAR_REJECTED_FIELDS } from "../../domain/models/CarRejectedFields";
 import {
   hasErrors,
   validateDraft,
 } from "../../domain/services/CarValidationService";
-import { carDraftErrorText, carFailureText, carsCopy } from "../assets/copy";
+import {
+  carDraftErrorText,
+  carFailureText,
+  carRejectedText,
+  carsCopy,
+} from "../assets/copy";
 
 interface CarFormDialogProps {
   mode: "create" | "edit";
@@ -57,11 +64,24 @@ export function CarFormDialog({
   const [draft, setDraft] = useState(initial);
   const [errors, setErrors] = useState<DraftErrors>({});
   const action = useApiAction(onUnauthenticated);
+  const rejected = useRejectedFields({
+    failure: action.failure,
+    fieldMap: CAR_REJECTED_FIELDS,
+    order: FIELDS,
+    ids: FIELD_IDS,
+    messages: carRejectedText,
+  });
   const creating = mode === "create";
   const optional = ` (${carsCopy.fields.optional})`;
 
   function update(patch: Partial<CarDraft>) {
     setDraft((current) => ({ ...current, ...patch }));
+
+    for (const field of FIELDS) {
+      if (field in patch) {
+        rejected.dismiss(field);
+      }
+    }
   }
 
   async function submit(event: FormEvent) {
@@ -104,7 +124,11 @@ export function CarFormDialog({
                 required
                 disabled={action.pending}
                 value={draft.plate}
-                error={errors.plate && carDraftErrorText[errors.plate]}
+                error={
+                  errors.plate
+                    ? carDraftErrorText[errors.plate]
+                    : rejected.messageFor("plate")
+                }
                 onChange={(event) => update({ plate: event.target.value })}
               />
               <Field
@@ -117,7 +141,11 @@ export function CarFormDialog({
                 maxLength={60}
                 disabled={action.pending}
                 value={draft.make}
-                error={errors.make && carDraftErrorText[errors.make]}
+                error={
+                  errors.make
+                    ? carDraftErrorText[errors.make]
+                    : rejected.messageFor("make")
+                }
                 onChange={(event) => update({ make: event.target.value })}
               />
               <Field
@@ -130,7 +158,11 @@ export function CarFormDialog({
                 maxLength={60}
                 disabled={action.pending}
                 value={draft.model}
-                error={errors.model && carDraftErrorText[errors.model]}
+                error={
+                  errors.model
+                    ? carDraftErrorText[errors.model]
+                    : rejected.messageFor("model")
+                }
                 onChange={(event) => update({ model: event.target.value })}
               />
               <Field
@@ -146,7 +178,11 @@ export function CarFormDialog({
                 maxLength={20}
                 disabled={action.pending}
                 value={draft.vin}
-                error={errors.vin && carDraftErrorText[errors.vin]}
+                error={
+                  errors.vin
+                    ? carDraftErrorText[errors.vin]
+                    : rejected.messageFor("vin")
+                }
                 onChange={(event) => update({ vin: event.target.value })}
               />
               <Field
@@ -160,7 +196,9 @@ export function CarFormDialog({
                 disabled={action.pending}
                 value={draft.mileageKm}
                 error={
-                  errors.mileageKm && carDraftErrorText[errors.mileageKm]
+                  errors.mileageKm
+                    ? carDraftErrorText[errors.mileageKm]
+                    : rejected.messageFor("mileageKm")
                 }
                 onChange={(event) => update({ mileageKm: event.target.value })}
               />

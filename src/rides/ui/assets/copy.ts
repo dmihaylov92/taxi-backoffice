@@ -3,7 +3,11 @@ import type { ApiFailureKind } from "../../../common/domain/models/ApiFailure";
 import type { ConfirmRemoveCopy } from "../../../common/ui/components/ConfirmRemoveDialog";
 import type { EmptyStateCopy } from "../../../common/ui/components/ListStates";
 import type { PaginationCopy } from "../../../common/ui/components/Pagination";
-import type { DraftErrorKind } from "../../domain/models/CarDraft";
+import type { ViolationReason } from "../../../common/domain/models/ViolationReason";
+import type {
+  DraftErrorKind,
+  DraftField,
+} from "../../domain/models/CarDraft";
 
 export const carsCopy = {
   title: "Автомобили",
@@ -138,4 +142,24 @@ export const carRemoveCopy: ConfirmRemoveCopy = {
   confirm: carsCopy.remove.confirm,
   cancel: carsCopy.cancel,
   pending: carsCopy.pending,
+};
+
+/** What the car form says when the API refuses a field, where that beats the shared default wording. */
+export const carRejectedText: Partial<
+  Record<DraftField, Partial<Record<ViolationReason, string>>>
+> = {
+  plate: {
+    REQUIRED: carDraftErrorText.plateRequired,
+    INVALID_FORMAT: carDraftErrorText.plateInvalid,
+  },
+  make: {
+    TOO_LONG: carDraftErrorText.textTooLong,
+    INVALID_FORMAT: carDraftErrorText.textTooLong,
+  },
+  model: {
+    TOO_LONG: carDraftErrorText.textTooLong,
+    INVALID_FORMAT: carDraftErrorText.textTooLong,
+  },
+  vin: { INVALID_FORMAT: carDraftErrorText.vinInvalid },
+  mileageKm: { OUT_OF_RANGE: carDraftErrorText.mileageInvalid },
 };

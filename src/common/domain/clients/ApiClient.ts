@@ -1,4 +1,5 @@
 import { ApiError } from "../models/ApiError";
+import type { Violation } from "../models/Violation";
 
 const CSRF_PATH = "/api/v1/auth/session/csrf";
 const CSRF_HEADER = "X-CSRF-Token";
@@ -11,12 +12,45 @@ interface CsrfProof {
 export interface ApiClientOptions {
   fetcher?: typeof fetch;
   /** Builds the error thrown for a failed request, so slices can keep their own error type. */
-  errorFor?: (status: number) => Error;
+  errorFor?: (status: number, violations?: readonly Violation[]) => Error;
   /**
    * Called once when a request is rejected as unauthenticated. Resolves true when the session
    * was renewed and the request may be replayed.
    */
   recover?: () => Promise<boolean>;
+}
+
+function isViolation(value: unknown): value is Violation {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "field" in value &&
+    typeof value.field === "string" &&
+    "code" in value &&
+    typeof value.code === "string"
+  );
+}
+
+/**
+ * The `errors` of a 400 problem body (field and reason per refused field). The body is optional,
+ * so anything unreadable means none.
+ */
+async function readViolations(response: Response): Promise<Violation[]> {
+  if (response.status !== 400) {
+    return [];
+  }
+
+  try {
+    const body: unknown = await response.json();
+    const errors =
+      typeof body === "object" && body !== null && "errors" in body
+        ? body.errors
+        : undefined;
+
+    return Array.isArray(errors) ? errors.filter(isViolation) : [];
+  } catch {
+    return [];
+  }
 }
 
 type UnsafeMethod = "POST" | "PUT" | "DELETE";
@@ -27,7 +61,10 @@ type UnsafeMethod = "POST" | "PUT" | "DELETE";
  */
 export class ApiClient {
   private readonly fetcher: typeof fetch;
-  private readonly errorFor: (status: number) => Error;
+  private readonly errorFor: (
+    status: number,
+    violations?: readonly Violation[],
+  ) => Error;
   private readonly recover?: () => Promise<boolean>;
   /** Proof reused across unsafe requests; dropped when the API rejects it or the session renews. */
   private proof?: CsrfProof;
@@ -36,7 +73,9 @@ export class ApiClient {
 
   constructor(options: ApiClientOptions = {}) {
     this.fetcher = options.fetcher ?? ((input, init) => fetch(input, init));
-    this.errorFor = options.errorFor ?? ((status) => new ApiError(status));
+    this.errorFor =
+      options.errorFor ??
+      ((status, violations) => new ApiError(status, violations));
     this.recover = options.recover;
   }
 
@@ -83,7 +122,7 @@ export class ApiClient {
     }
 
     if (!response.ok) {
-      throw this.errorFor(response.status);
+      throw this.errorFor(response.status, await readViolations(response));
     }
 
     return response;

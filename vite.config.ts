@@ -12,6 +12,8 @@ export default defineConfig({
   test: {
     include: ["src/tests/**/*.test.{ts,tsx}"],
     environment: "jsdom",
+    // A developer key in .env.local must never make tests call the real provider.
+    env: { VITE_GOOGLE_PLACES_API_KEY: "" },
     setupFiles: ["./src/tests/setup.ts"],
   },
 });

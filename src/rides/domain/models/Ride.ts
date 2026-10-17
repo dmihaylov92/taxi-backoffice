@@ -1,3 +1,5 @@
+import type { Coordinates } from "../../../common/domain/models/Coordinates";
+
 export type RideStatus = "PENDING" | "ACCEPTED" | "FINISHED" | "REJECTED";
 
 export const RIDE_STATUSES: readonly RideStatus[] = [
@@ -24,6 +26,9 @@ export interface Ride {
   phoneNumber?: string;
   pickupAddress?: string;
   destinationAddress?: string;
+  /** Where the addresses are, when they were chosen from the address search. */
+  pickupCoordinates?: Coordinates;
+  destinationCoordinates?: Coordinates;
   driverId?: string;
   dispatcherId?: string;
   /** ISO timestamps. */

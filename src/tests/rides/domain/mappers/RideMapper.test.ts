@@ -95,6 +95,28 @@ describe("RideMapper", () => {
     });
   });
 
+  it("carries the coordinates of chosen places through the wire and the draft", () => {
+    const ride = toRide({
+      ...wire,
+      pickupLatitude: 42.05,
+      pickupLongitude: 25.6,
+      destinationLatitude: 42.06,
+    });
+
+    expect(ride.pickupCoordinates).toEqual({ latitude: 42.05, longitude: 25.6 });
+    expect(ride.destinationCoordinates).toBeUndefined();
+
+    const draft = toDraft(ride);
+
+    expect(toUpdateBody(draft)).toMatchObject({
+      pickupLatitude: 42.05,
+      pickupLongitude: 25.6,
+    });
+    expect(
+      toUpdateBody({ ...draft, pickupCoordinates: undefined }).pickupLatitude,
+    ).toBeUndefined();
+  });
+
   it("does not double the country code of a pasted full number", () => {
     for (const typed of ["+359 888 123 456", "+359888123456", "888-123-456"]) {
       expect(toCreateBody({ ...EMPTY_RIDE_DRAFT, phone: typed }).phoneNumber).toBe(

@@ -6,6 +6,7 @@ import "./common/ui/assets/styles.css";
 import "./common/ui/assets/approved-theme.css";
 import "./common/ui/assets/shell.css";
 import "./common/ui/assets/lists.css";
+import "./common/ui/assets/address.css";
 import "./rides/ui/assets/rides.css";
 import "./rides/ui/assets/ride-orders.css";
 import { consumeLinkToken } from "./auth/domain/services/ResetLinkService";

@@ -8,6 +8,11 @@ import { AppRoutes } from "./AppRoutes";
 import { authService, type AuthApi } from "./auth/domain/services/AuthService";
 import { AuthSessionProvider } from "./auth/ui/components/AuthSessionProvider";
 import { ApiClient } from "./common/domain/clients/ApiClient";
+import {
+  createAddressSearch,
+  type AddressSearchApi,
+} from "./common/domain/services/AddressSearchService";
+import { AddressSearchProvider } from "./common/ui/components/AddressSearchProvider";
 import { CarClient } from "./rides/domain/clients/CarClient";
 import { DriverLookupClient } from "./rides/domain/clients/DriverLookupClient";
 import { RideClient } from "./rides/domain/clients/RideClient";
@@ -46,28 +51,34 @@ export function App({
   accounts,
   cars,
   rides,
+  addressSearch,
   linkToken,
 }: {
   auth?: AuthApi;
   accounts?: AccountApi;
   cars?: CarApi;
   rides?: RideApi;
+  /** Address search for the address fields; defaults to the provider configured in the build. */
+  addressSearch?: AddressSearchApi;
   linkToken?: string;
 }) {
   const [defaultAccounts] = useState(() => createAccountService(auth));
   const [defaultCars] = useState(() => createCarService(auth));
   const [defaultRides] = useState(() => createRideService(auth));
+  const [defaultAddressSearch] = useState(() => createAddressSearch());
 
   return (
     <AuthSessionProvider auth={auth}>
-      <AppRoutes
-        services={{
-          accounts: accounts ?? defaultAccounts,
-          cars: cars ?? defaultCars,
-          rides: rides ?? defaultRides,
-        }}
-        linkToken={linkToken}
-      />
+      <AddressSearchProvider search={addressSearch ?? defaultAddressSearch}>
+        <AppRoutes
+          services={{
+            accounts: accounts ?? defaultAccounts,
+            cars: cars ?? defaultCars,
+            rides: rides ?? defaultRides,
+          }}
+          linkToken={linkToken}
+        />
+      </AddressSearchProvider>
     </AuthSessionProvider>
   );
 }

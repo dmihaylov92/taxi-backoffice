@@ -3,7 +3,11 @@ import { apiMessages } from "../../../common/ui/assets/copy";
 import type { ConfirmRemoveCopy } from "../../../common/ui/components/ConfirmRemoveDialog";
 import type { PaginationCopy } from "../../../common/ui/components/Pagination";
 import type { RideStatus, RideType } from "../../domain/models/Ride";
-import type { RideDraftErrorKind } from "../../domain/models/RideDraft";
+import type { ViolationReason } from "../../../common/domain/models/ViolationReason";
+import type {
+  RideDraftErrorKind,
+  RideDraftField,
+} from "../../domain/models/RideDraft";
 import type { DriverAvailability } from "../../domain/models/RideDriver";
 
 export const ridesCopy = {
@@ -151,8 +155,6 @@ export const ridesCopy = {
     phoneHint: "Формат: +359 и още 9 цифри.",
     pickup: "Адрес за вземане",
     destination: "Дестинация",
-    addressPlaceholder: "Въведете адрес",
-    addressSearchPlaceholder: "Търсене на адрес…",
     driver: "Шофьор",
     noDriver: "Без шофьор",
     driverHintNormal:
@@ -167,13 +169,6 @@ export const ridesCopy = {
     distanceBody:
       "Ориентир за маршрута по пътищата. Не е цена и не е реален пробег.",
     distanceNone: "Още не е изчислено",
-  },
-  addresses: {
-    searching: "Търсене на адреси…",
-    none: "Няма намерени адреси.",
-    failed:
-      "Търсенето на адреси е неуспешно. Можете да въведете адреса ръчно.",
-    hint: "Показани са най-подходящите адреси. Продължете да пишете, за да стесните резултатите.",
   },
   assign: {
     title: "Назначи шофьор",
@@ -275,6 +270,33 @@ export const rideDraftErrorText: Record<RideDraftErrorKind, string> = {
   addressInvalid: "Адресът съдържа недопустими символи.",
   driverRequired: "Изберете шофьор.",
   periodInvalid: "Краят на периода трябва да е след началото.",
+};
+
+const coordinatesRejected =
+  "Местоположението на адреса е отхвърлено. Изберете адреса отново от списъка или го въведете ръчно.";
+
+/** What the form says when the API refuses a field, where that beats the shared default wording. */
+export const rideRejectedText: Partial<
+  Record<RideDraftField, Partial<Record<ViolationReason, string>>>
+> = {
+  phone: {
+    REQUIRED: rideDraftErrorText.phoneRequired,
+    INVALID_FORMAT: rideDraftErrorText.phoneInvalid,
+  },
+  pickupAddress: {
+    REQUIRED: rideDraftErrorText.pickupRequired,
+    TOO_LONG: rideDraftErrorText.addressTooLong,
+    INVALID_FORMAT: rideDraftErrorText.addressInvalid,
+    OUT_OF_RANGE: coordinatesRejected,
+    INCOMPLETE: coordinatesRejected,
+  },
+  destinationAddress: {
+    REQUIRED: rideDraftErrorText.destinationRequired,
+    TOO_LONG: rideDraftErrorText.addressTooLong,
+    INVALID_FORMAT: rideDraftErrorText.addressInvalid,
+    OUT_OF_RANGE: coordinatesRejected,
+    INCOMPLETE: coordinatesRejected,
+  },
 };
 
 export const ridePaginationCopy: PaginationCopy = {

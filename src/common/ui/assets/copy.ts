@@ -1,4 +1,5 @@
 import type { Role } from "../../domain/models/Role";
+import type { ViolationReason } from "../../domain/models/ViolationReason";
 
 export const brand = { name: "Taxi", logo: "/logo.svg" };
 
@@ -40,3 +41,24 @@ export const shell = {
     settings: "Настройки",
   },
 } as const;
+
+export const addressCopy = {
+  placeholder: "Въведете адрес",
+  searchPlaceholder: "Търсене на адрес…",
+  searching: "Търсене на адреси…",
+  none: "Няма намерени адреси.",
+  failed: "Търсенето на адреси е неуспешно. Можете да въведете адреса ръчно.",
+  hint: "Показани са най-подходящите адреси. Продължете да пишете, за да стесните резултатите.",
+  noCoordinates:
+    "Адресът е избран, но местоположението му не беше получено. Поръчката ще се запази само с адреса.",
+} as const;
+
+/** Default wording per API field reason; a form overrides it only where it can say something more useful. */
+export const violationText: Record<ViolationReason, string> = {
+  REQUIRED: "Полето е задължително.",
+  TOO_LONG: "Стойността е твърде дълга.",
+  OUT_OF_RANGE: "Стойността е извън допустимия диапазон.",
+  INVALID_FORMAT: "Стойността е в невалиден формат.",
+  INCOMPLETE: "Данните са непълни.",
+  INVALID: "Стойността е невалидна.",
+};

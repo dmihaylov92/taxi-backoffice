@@ -3,6 +3,7 @@ import { useState, type FormEvent } from "react";
 import { Field } from "../../../common/ui/components/Field";
 import { Modal } from "../../../common/ui/components/Modal";
 import { useApiAction } from "../../../common/ui/hooks/useApiAction";
+import { useRejectedFields } from "../../../common/ui/hooks/useRejectedFields";
 import { PendingButton } from "../../../common/ui/components/PendingButton";
 import {
   ACCOUNT_STATUSES,
@@ -13,12 +14,14 @@ import type {
   DraftErrors,
   DraftField,
 } from "../../domain/models/AccountDraft";
+import { ACCOUNT_REJECTED_FIELDS } from "../../domain/models/AccountRejectedFields";
 import {
   hasErrors,
   validateDraft,
 } from "../../domain/services/AccountValidationService";
 import {
   accountFailureText,
+  accountRejectedText,
   accountsCopy,
   draftErrorText,
 } from "../assets/copy";
@@ -82,11 +85,26 @@ export function AccountFormDialog({
   const [step, setStep] = useState<Step>(0);
   const [errors, setErrors] = useState<DraftErrors>({});
   const action = useApiAction(onUnauthenticated);
+  const rejected = useRejectedFields({
+    failure: action.failure,
+    fieldMap: ACCOUNT_REJECTED_FIELDS,
+    order: ALL_FIELDS,
+    ids: FIELD_IDS,
+    messages: accountRejectedText,
+    // A refused field may sit on an earlier wizard step: go back to it so the message is visible.
+    onRejected: (first) => setStep(first === "roles" ? 1 : 0),
+  });
   const creating = mode === "create";
   const title = creating ? accountsCopy.create.title : accountsCopy.edit.title;
 
   function update(patch: Partial<AccountDraft>) {
     setDraft((current) => ({ ...current, ...patch }));
+
+    for (const field of ALL_FIELDS) {
+      if (field in patch) {
+        rejected.dismiss(field);
+      }
+    }
   }
 
   function toggleRole(role: Role) {
@@ -129,6 +147,9 @@ export function AccountFormDialog({
   const failureMessage = action.failure
     ? accountFailureText[action.failure.kind]
     : undefined;
+  const rolesError = errors.roles
+    ? draftErrorText[errors.roles]
+    : rejected.messageFor("roles");
   const showBasic = !creating || step === 0;
   const showRoles = !creating || step === 1;
   const showReview = creating && step === 2;
@@ -193,7 +214,11 @@ export function AccountFormDialog({
                   required
                   disabled={action.pending}
                   value={draft.email}
-                  error={errors.email && draftErrorText[errors.email]}
+                  error={
+                    errors.email
+                      ? draftErrorText[errors.email]
+                      : rejected.messageFor("email")
+                  }
                   onChange={(event) => update({ email: event.target.value })}
                 />
                 <Field
@@ -210,7 +235,11 @@ export function AccountFormDialog({
                   maxLength={100}
                   disabled={action.pending}
                   value={draft.firstName}
-                  error={errors.firstName && draftErrorText[errors.firstName]}
+                  error={
+                    errors.firstName
+                      ? draftErrorText[errors.firstName]
+                      : rejected.messageFor("firstName")
+                  }
                   onChange={(event) =>
                     update({ firstName: event.target.value })
                   }
@@ -229,7 +258,11 @@ export function AccountFormDialog({
                   maxLength={100}
                   disabled={action.pending}
                   value={draft.lastName}
-                  error={errors.lastName && draftErrorText[errors.lastName]}
+                  error={
+                    errors.lastName
+                      ? draftErrorText[errors.lastName]
+                      : rejected.messageFor("lastName")
+                  }
                   onChange={(event) => update({ lastName: event.target.value })}
                 />
               </div>
@@ -239,7 +272,7 @@ export function AccountFormDialog({
               <div className="form-grid">
                 <fieldset
                   className="choices"
-                  aria-describedby={errors.roles ? "account-roles-error" : undefined}
+                  aria-describedby={rolesError ? "account-roles-error" : undefined}
                 >
                   <legend>{`${accountsCopy.fields.roles} *`}</legend>
                   <div className="choice-grid">
@@ -259,9 +292,9 @@ export function AccountFormDialog({
                       </label>
                     ))}
                   </div>
-                  {errors.roles && (
+                  {rolesError && (
                     <p className="error-text" id="account-roles-error">
-                      {draftErrorText[errors.roles]}
+                      {rolesError}
                     </p>
                   )}
                 </fieldset>

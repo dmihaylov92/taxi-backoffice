@@ -71,4 +71,30 @@ describe("ApiClient CSRF proof", () => {
       "X-CSRF-Token": "after",
     });
   });
+
+  it("carries the refused fields of a problem body and ignores unreadable or malformed ones", async () => {
+    const problem = {
+      type: "urn:taxi:problem:invalid",
+      status: 400,
+      code: "INVALID",
+      errors: [
+        { field: "pickupAddress", code: "REQUIRED" },
+        { field: "phoneNumber" },
+        "oops",
+      ],
+    };
+    const named = new ApiClient({ fetcher: transport(json(400, problem)) });
+    const unnamed = new ApiClient({
+      fetcher: transport(new Response("<html>", { status: 400 })),
+    });
+
+    await expect(named.get("/api/v1/rides")).rejects.toMatchObject({
+      status: 400,
+      violations: [{ field: "pickupAddress", code: "REQUIRED" }],
+    });
+    await expect(unnamed.get("/api/v1/rides")).rejects.toMatchObject({
+      status: 400,
+      violations: [],
+    });
+  });
 });

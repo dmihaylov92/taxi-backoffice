@@ -236,6 +236,23 @@ describe("CarsPage (mocked car port, not live integration)", () => {
     expect(api.list).toHaveBeenCalledTimes(2);
   });
 
+  it("shows the API refusal of a field beside it and focuses it", async () => {
+    const update = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError(400, [{ field: "vin", code: "INVALID_FORMAT" }]),
+      );
+    const { user } = renderCars({ cars: { update } });
+
+    await openMenu(user, "CB1234AB", carsCopy.menu.edit);
+    await user.click(
+      screen.getByRole("button", { name: carsCopy.edit.submit }),
+    );
+
+    expect(await screen.findByText(/VIN трябва да е точно/)).toBeVisible();
+    expect(screen.getByLabelText(new RegExp(carsCopy.fields.vin))).toHaveFocus();
+  });
+
   it("keeps the dialog open and explains a rejected save", async () => {
     const update = vi.fn().mockRejectedValue(new ApiError(409));
     const { user } = renderCars({ cars: { update } });

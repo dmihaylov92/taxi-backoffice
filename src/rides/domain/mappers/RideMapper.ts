@@ -1,3 +1,4 @@
+import type { Coordinates } from "../../../common/domain/models/Coordinates";
 import {
   RIDE_STATUSES,
   RIDE_TYPES,
@@ -14,6 +15,10 @@ export interface RideRequestBody {
   phoneNumber: string;
   pickupAddress: string;
   destinationAddress: string;
+  pickupLatitude?: number;
+  pickupLongitude?: number;
+  destinationLatitude?: number;
+  destinationLongitude?: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -26,6 +31,15 @@ function optionalText(value: unknown): string | undefined {
 
 function optionalNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function toCoordinates(latitude: unknown, longitude: unknown): Coordinates | undefined {
+  return typeof latitude === "number" &&
+    typeof longitude === "number" &&
+    Number.isFinite(latitude) &&
+    Number.isFinite(longitude)
+    ? { latitude, longitude }
+    : undefined;
 }
 
 function toStatus(value: unknown): RideStatus {
@@ -60,6 +74,11 @@ export function toRide(raw: unknown): Ride {
     phoneNumber: optionalText(raw.phoneNumber),
     pickupAddress: optionalText(raw.pickupAddress),
     destinationAddress: optionalText(raw.destinationAddress),
+    pickupCoordinates: toCoordinates(raw.pickupLatitude, raw.pickupLongitude),
+    destinationCoordinates: toCoordinates(
+      raw.destinationLatitude,
+      raw.destinationLongitude,
+    ),
     driverId: optionalText(raw.driverId),
     dispatcherId: optionalText(raw.dispatcherId),
     createdAt: optionalText(raw.createdAt),
@@ -86,6 +105,10 @@ function editableFields(draft: RideDraft): RideRequestBody {
     phoneNumber: PHONE_PREFIX + nationalDigits(draft.phone),
     pickupAddress: draft.pickupAddress.trim(),
     destinationAddress: draft.destinationAddress.trim(),
+    pickupLatitude: draft.pickupCoordinates?.latitude,
+    pickupLongitude: draft.pickupCoordinates?.longitude,
+    destinationLatitude: draft.destinationCoordinates?.latitude,
+    destinationLongitude: draft.destinationCoordinates?.longitude,
   };
 }
 
@@ -126,6 +149,8 @@ export function toDraft(ride: Ride): RideDraft {
     phone: nationalPart(ride.phoneNumber),
     pickupAddress: ride.pickupAddress ?? "",
     destinationAddress: ride.destinationAddress ?? "",
+    pickupCoordinates: ride.pickupCoordinates,
+    destinationCoordinates: ride.destinationCoordinates,
     driverId: ride.driverId ?? "",
     plannedFrom: ride.plannedFrom ?? "",
     plannedTo: ride.plannedTo ?? "",

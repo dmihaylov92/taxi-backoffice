@@ -1,9 +1,11 @@
 import { useState, type FormEvent, type ReactNode } from "react";
+import { AddressAutocomplete } from "../../../common/ui/components/AddressAutocomplete";
 import { Field } from "../../../common/ui/components/Field";
 import { Icon } from "../../../common/ui/components/Icon";
 import { Modal } from "../../../common/ui/components/Modal";
 import { PendingButton } from "../../../common/ui/components/PendingButton";
 import { useApiAction } from "../../../common/ui/hooks/useApiAction";
+import { useRejectedFields } from "../../../common/ui/hooks/useRejectedFields";
 import { driverName } from "../../domain/models/Car";
 import { rideNumber, type Ride, type RideType } from "../../domain/models/Ride";
 import type { RideCapabilities } from "../../domain/models/RideCapabilities";
@@ -13,8 +15,8 @@ import {
   type RideDraftErrors,
   type RideDraftField,
 } from "../../domain/models/RideDraft";
-import type { AddressSuggestion } from "../../domain/models/AddressSuggestion";
 import type { RideDriver } from "../../domain/models/RideDriver";
+import { RIDE_REJECTED_FIELDS } from "../../domain/models/RideRejectedFields";
 import { formatKm } from "../../domain/services/RideFormatService";
 import {
   firstErrorField,
@@ -25,9 +27,9 @@ import {
   ridesCopy,
   rideDraftErrorText,
   rideFailureText,
+  rideRejectedText,
   STALE_FAILURES,
 } from "../assets/rideCopy";
-import { AddressField } from "./AddressField";
 import { AvailabilityLabel, RideStatusBadge, RideTypeBadge } from "./RideBadges";
 
 interface RideFormDialogProps {
@@ -39,10 +41,6 @@ interface RideFormDialogProps {
   capabilities: RideCapabilities;
   /** Whether a driver can be reassigned from the ride's own menu; only used for wording. */
   assignAvailable: boolean;
-  suggest?: (
-    text: string,
-    signal: AbortSignal,
-  ) => Promise<AddressSuggestion[]>;
   /** Rejects when the API does not confirm the change; the dialog stays open and shows why. */
   onSubmit: (draft: RideDraft) => Promise<void>;
   /** The visible list is stale; the host reloads it and closes the dialog. */
@@ -194,7 +192,6 @@ export function RideFormDialog({
   drivers,
   capabilities,
   assignAvailable,
-  suggest,
   onSubmit,
   onReload,
   onClose,
@@ -217,8 +214,20 @@ export function RideFormDialog({
     (driver) => driver.status !== "DISABLED",
   );
 
+  const rejected = useRejectedFields({
+    failure: action.failure,
+    fieldMap: RIDE_REJECTED_FIELDS,
+    order: FIELD_ORDER,
+    ids: FIELD_IDS,
+    messages: rideRejectedText,
+  });
+
   function update(patch: Partial<RideDraft>, cleared?: RideDraftField) {
     setDraft((current) => ({ ...current, ...patch }));
+
+    if (cleared) {
+      rejected.dismiss(cleared);
+    }
 
     if (cleared && errors[cleared]) {
       setErrors((current) => {
@@ -258,7 +267,9 @@ export function RideFormDialog({
     await action.run(() => onSubmit(draft));
   }
 
-  const phoneError = errors.phone && rideDraftErrorText[errors.phone];
+  const phoneError = errors.phone
+    ? rideDraftErrorText[errors.phone]
+    : rejected.messageFor("phone");
 
   return (
     <Modal
@@ -406,33 +417,52 @@ export function RideFormDialog({
               )}
             </div>
 
-            <AddressField
+            <AddressAutocomplete
               id={FIELD_IDS.pickupAddress}
               label={`${ridesCopy.form.pickup}${business ? optional : requiredMark}`}
               required={!business}
               disabled={action.pending}
-              suggest={suggest}
               value={draft.pickupAddress}
               error={
-                errors.pickupAddress && rideDraftErrorText[errors.pickupAddress]
+                errors.pickupAddress
+                  ? rideDraftErrorText[errors.pickupAddress]
+                  : rejected.messageFor("pickupAddress")
               }
               onChange={(pickupAddress) =>
-                update({ pickupAddress }, "pickupAddress")
+                update(
+                  { pickupAddress, pickupCoordinates: undefined },
+                  "pickupAddress",
+                )
+              }
+              onSelect={({ label, coordinates }) =>
+                update({
+                  pickupAddress: label,
+                  pickupCoordinates: coordinates,
+                })
               }
             />
-            <AddressField
+            <AddressAutocomplete
               id={FIELD_IDS.destinationAddress}
               label={`${ridesCopy.form.destination}${business ? optional : requiredMark}`}
               required={!business}
               disabled={action.pending}
-              suggest={suggest}
               value={draft.destinationAddress}
               error={
-                errors.destinationAddress &&
-                rideDraftErrorText[errors.destinationAddress]
+                errors.destinationAddress
+                  ? rideDraftErrorText[errors.destinationAddress]
+                  : rejected.messageFor("destinationAddress")
               }
               onChange={(destinationAddress) =>
-                update({ destinationAddress }, "destinationAddress")
+                update(
+                  { destinationAddress, destinationCoordinates: undefined },
+                  "destinationAddress",
+                )
+              }
+              onSelect={({ label, coordinates }) =>
+                update({
+                  destinationAddress: label,
+                  destinationCoordinates: coordinates,
+                })
               }
             />
 

@@ -1,3 +1,4 @@
+import type { Coordinates } from "../../../common/domain/models/Coordinates";
 import type { RideType } from "./Ride";
 
 /** Country prefix shown beside the phone input; the draft holds only the digits after it. */
@@ -10,6 +11,9 @@ export interface RideDraft {
   phone: string;
   pickupAddress: string;
   destinationAddress: string;
+  /** Set by choosing a proposal; any later edit of the address text clears it. */
+  pickupCoordinates?: Coordinates;
+  destinationCoordinates?: Coordinates;
   /** Identifier of the chosen driver, or empty for none. */
   driverId: string;
   /** `datetime-local` values (`yyyy-MM-ddTHH:mm`) or empty. */

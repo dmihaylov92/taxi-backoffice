@@ -4,7 +4,11 @@ import type { ConfirmRemoveCopy } from "../../../common/ui/components/ConfirmRem
 import type { EmptyStateCopy } from "../../../common/ui/components/ListStates";
 import type { PaginationCopy } from "../../../common/ui/components/Pagination";
 import type { AccountStatus } from "../../domain/models/Account";
-import type { DraftErrorKind } from "../../domain/models/AccountDraft";
+import type { ViolationReason } from "../../../common/domain/models/ViolationReason";
+import type {
+  DraftErrorKind,
+  DraftField,
+} from "../../domain/models/AccountDraft";
 import type { ApiFailureKind } from "../../../common/domain/models/ApiFailure";
 
 export const accountsCopy = {
@@ -155,4 +159,27 @@ export const accountRemoveCopy: ConfirmRemoveCopy = {
   confirm: accountsCopy.remove.confirm,
   cancel: accountsCopy.cancel,
   pending: accountsCopy.pending,
+};
+
+/** What the account form says when the API refuses a field, where that beats the shared default wording. */
+export const accountRejectedText: Partial<
+  Record<DraftField, Partial<Record<ViolationReason, string>>>
+> = {
+  email: {
+    REQUIRED: draftErrorText.emailInvalid,
+    TOO_LONG: draftErrorText.emailInvalid,
+    INVALID_FORMAT: draftErrorText.emailInvalid,
+  },
+  firstName: {
+    TOO_LONG: draftErrorText.nameInvalid,
+    INVALID_FORMAT: draftErrorText.nameInvalid,
+  },
+  lastName: {
+    TOO_LONG: draftErrorText.nameInvalid,
+    INVALID_FORMAT: draftErrorText.nameInvalid,
+  },
+  roles: {
+    REQUIRED: draftErrorText.rolesRequired,
+    INVALID: draftErrorText.rolesRequired,
+  },
 };

@@ -1,11 +1,9 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { Icon } from "../../../common/ui/components/Icon";
-import { useLatest } from "../../../common/ui/hooks/useLatest";
+import type { AddressSelection } from "../../domain/models/AddressSelection";
 import type { AddressSuggestion } from "../../domain/models/AddressSuggestion";
-import { ridesCopy } from "../assets/rideCopy";
-
-const SEARCH_DEBOUNCE_MS = 300;
-const MIN_SEARCH_LENGTH = 3;
+import { addressCopy } from "../assets/copy";
+import { Icon } from "./Icon";
+import { useAddressSearch } from "./AddressSearchProvider";
 
 type Search =
   | { status: "idle" }
@@ -13,43 +11,45 @@ type Search =
   | { status: "failed" }
   | { status: "ready"; items: AddressSuggestion[] };
 
-interface AddressFieldProps {
+interface AddressAutocompleteProps {
   id: string;
   label: string;
   value: string;
   error?: string;
   disabled?: boolean;
   required?: boolean;
-  /**
-   * Looks up proposals for the typed text. Without it the field is a plain text input, because
-   * no address provider is configured and the typed address is stored as written.
-   */
-  suggest?: (
-    text: string,
-    signal: AbortSignal,
-  ) => Promise<AddressSuggestion[]>;
+  /** Called for every edit of the text, including the label of a chosen proposal. */
   onChange: (value: string) => void;
+  /** Called once the place of a chosen proposal is known; edits afterwards invalidate it. */
+  onSelect?: (selection: AddressSelection) => void;
 }
 
-/** Address input that, when a provider is available, follows the combobox pattern with a listbox. */
-export function AddressField({
+/**
+ * Address input with place proposals, shared by every screen that takes an address. It follows the
+ * combobox pattern with a listbox. Without an address search provider it is a plain text input,
+ * because the typed address is then stored as written. The provider is reached only through
+ * `useAddressSearch`, so replacing it never touches this component.
+ */
+export function AddressAutocomplete({
   id,
   label,
   value,
   error,
   disabled,
   required,
-  suggest,
   onChange,
-}: AddressFieldProps) {
+  onSelect,
+}: AddressAutocompleteProps) {
+  const service = useAddressSearch();
   const listId = useId();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const [search, setSearch] = useState<Search>({ status: "idle" });
+  const [lookupFailed, setLookupFailed] = useState(false);
   /** The label just chosen, so choosing it does not immediately search for it again. */
   const chosen = useRef<string>(undefined);
-  const lookup = useLatest(suggest);
-  const searchable = Boolean(suggest);
+  const lookup = useRef<AbortController>(undefined);
+  const searchable = Boolean(service);
   const items = search.status === "ready" ? search.items : [];
   const expanded = open && search.status !== "idle";
   const listVisible = expanded && items.length > 0;
@@ -58,11 +58,11 @@ export function AddressField({
   useEffect(() => {
     const text = value.trim();
 
-    if (!searchable || !open) {
+    if (!service || !open) {
       return;
     }
 
-    if (text.length < MIN_SEARCH_LENGTH || text === chosen.current) {
+    if (text.length < service.minLength || text === chosen.current) {
       setSearch({ status: "idle" });
 
       return;
@@ -73,8 +73,8 @@ export function AddressField({
     setSearch({ status: "loading" });
 
     const timer = window.setTimeout(() => {
-      lookup
-        .current?.(text, controller.signal)
+      service
+        .search(text, controller.signal)
         .then((found) => {
           if (!controller.signal.aborted) {
             setActive(-1);
@@ -86,19 +86,43 @@ export function AddressField({
             setSearch({ status: "failed" });
           }
         });
-    }, SEARCH_DEBOUNCE_MS);
+    }, service.debounceMs);
 
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [value, open, searchable, lookup]);
+  }, [value, open, service]);
+
+  useEffect(() => () => lookup.current?.abort(), []);
+
+  function cancelLookup() {
+    lookup.current?.abort();
+    setLookupFailed(false);
+  }
 
   function choose(suggestion: AddressSuggestion) {
+    cancelLookup();
     chosen.current = suggestion.label;
     onChange(suggestion.label);
     setOpen(false);
     setSearch({ status: "idle" });
+
+    const controller = new AbortController();
+
+    lookup.current = controller;
+    service
+      ?.resolve(suggestion, controller.signal)
+      .then((selection) => {
+        if (!controller.signal.aborted) {
+          onSelect?.(selection);
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setLookupFailed(true);
+        }
+      });
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
@@ -163,9 +187,7 @@ export function AddressField({
           disabled={disabled}
           value={value}
           placeholder={
-            searchable
-              ? ridesCopy.form.addressSearchPlaceholder
-              : ridesCopy.form.addressPlaceholder
+            searchable ? addressCopy.searchPlaceholder : addressCopy.placeholder
           }
           role={searchable ? "combobox" : undefined}
           aria-autocomplete={searchable ? "list" : undefined}
@@ -178,6 +200,7 @@ export function AddressField({
           aria-describedby={error ? errorId : undefined}
           onChange={(event) => {
             chosen.current = undefined;
+            cancelLookup();
             setOpen(true);
             onChange(event.target.value);
           }}
@@ -189,17 +212,17 @@ export function AddressField({
             {search.status === "loading" && (
               <p className="address-state" role="status">
                 <span className="spinner" aria-hidden="true" />
-                {ridesCopy.addresses.searching}
+                {addressCopy.searching}
               </p>
             )}
             {search.status === "failed" && (
               <p className="address-state" role="alert">
-                {ridesCopy.addresses.failed}
+                {addressCopy.failed}
               </p>
             )}
             {search.status === "ready" && items.length === 0 && (
               <p className="address-state" role="status">
-                {ridesCopy.addresses.none}
+                {addressCopy.none}
               </p>
             )}
             {items.length > 0 && (
@@ -226,12 +249,17 @@ export function AddressField({
                     </li>
                   ))}
                 </ul>
-                <p className="hint">{ridesCopy.addresses.hint}</p>
+                <p className="hint">{addressCopy.hint}</p>
               </>
             )}
           </div>
         )}
       </div>
+      {lookupFailed && (
+        <p className="hint" role="status">
+          {addressCopy.noCoordinates}
+        </p>
+      )}
       {error && (
         <p className="error-text" id={errorId}>
           {error}

@@ -230,6 +230,23 @@ describe("AccountsPage (mocked account port, not live integration)", () => {
     expect(api.list).toHaveBeenCalledTimes(2);
   });
 
+  it("shows the API refusal of a field beside it and focuses it", async () => {
+    const update = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError(400, [{ field: "email", code: "INVALID_FORMAT" }]),
+      );
+    const { user } = renderAccounts({ accounts: { update } });
+
+    await openMenu(user, "Иван Петров", accountsCopy.menu.edit);
+    await user.click(
+      screen.getByRole("button", { name: accountsCopy.edit.submit }),
+    );
+
+    expect(await screen.findByText(/Въведете валиден имейл/)).toBeVisible();
+    expect(screen.getByLabelText(`${accountsCopy.fields.email} *`)).toHaveFocus();
+  });
+
   it("keeps the dialog open and explains a rejected save", async () => {
     const update = vi.fn().mockRejectedValue(new ApiError(409));
     const { user } = renderAccounts({ accounts: { update } });

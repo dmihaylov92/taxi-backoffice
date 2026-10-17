@@ -31,7 +31,6 @@ describe("RideService", () => {
     });
     expect(service.assign).toBeUndefined();
     expect(service.reopen).toBeUndefined();
-    expect(service.suggestAddresses).toBeUndefined();
   });
 
   it("lists a page with the status filter and signal", async () => {

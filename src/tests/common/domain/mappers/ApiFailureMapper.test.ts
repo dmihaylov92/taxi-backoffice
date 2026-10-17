@@ -18,6 +18,15 @@ describe("ApiFailureMapper", () => {
     expect(toApiFailure(new ApiError(status))).toEqual({ kind });
   });
 
+  it("keeps the rejected field names when the API gave them", () => {
+    const violations = [{ field: "phoneNumber", code: "REQUIRED" }];
+
+    expect(toApiFailure(new ApiError(400, violations))).toEqual({
+      kind: "invalid",
+      violations,
+    });
+  });
+
   it("treats unknown errors as unavailable", () => {
     expect(toApiFailure(new Error("boom"))).toEqual({
       kind: "unavailable",

@@ -76,13 +76,6 @@ export function RidesPage({
     () => ({ assign: Boolean(rides.assign), reopen: Boolean(rides.reopen) }),
     [rides],
   );
-  const suggest = useMemo(() => {
-    const search = rides.suggestAddresses?.bind(rides);
-
-    return search
-      ? (text: string, signal: AbortSignal) => search(text, signal)
-      : undefined;
-  }, [rides]);
 
   useEffect(() => {
     if (headingFocus > 0) {
@@ -404,7 +397,6 @@ export function RidesPage({
           drivers={directory.drivers}
           capabilities={rides.capabilities}
           assignAvailable={operations.assign}
-          suggest={suggest}
           onSubmit={create}
           onReload={reloadAndClose}
           onClose={() => setDialog({ kind: "none" })}
@@ -419,7 +411,6 @@ export function RidesPage({
           drivers={directory.drivers}
           capabilities={rides.capabilities}
           assignAvailable={operations.assign}
-          suggest={suggest}
           onSubmit={(draft) => edit(dialog.ride, draft)}
           onReload={reloadAndClose}
           onClose={() => setDialog({ kind: "none" })}

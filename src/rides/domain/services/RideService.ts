@@ -15,7 +15,6 @@ import {
   type RideCapabilities,
 } from "../models/RideCapabilities";
 import type { RideDraft } from "../models/RideDraft";
-import type { AddressSuggestion } from "../models/AddressSuggestion";
 import type { RideDriver } from "../models/RideDriver";
 import type { RideFilters } from "../models/RideFilters";
 
@@ -44,11 +43,6 @@ export interface RideApi {
   assign?(id: string, driverId: string): Promise<Ride>;
   /** Present only when the API can reopen a finished or rejected ride. */
   reopen?(id: string): Promise<Ride>;
-  /** Present only when an address search provider is configured. */
-  suggestAddresses?(
-    text: string,
-    signal?: AbortSignal,
-  ): Promise<AddressSuggestion[]>;
 }
 
 export class RideService implements RideApi {

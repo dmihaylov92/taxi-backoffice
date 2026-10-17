@@ -403,61 +403,6 @@
   outline: none;
 }
 
-.address-wrap {
-  position: relative;
-}
-
-.address-popup {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: calc(100% + 4px);
-  z-index: 6;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--surface);
-  box-shadow: 0 12px 32px rgb(0 0 0 / 0.5);
-}
-
-.address-popup ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.address-popup li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.address-popup li.active,
-.address-popup li:hover {
-  background: var(--canvas);
-}
-
-.address-popup li > span {
-  display: grid;
-}
-
-.address-popup .hint {
-  padding: 8px 10px 4px;
-  border-top: 1px solid var(--line);
-  margin-top: 4px;
-}
-
-.address-state {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px;
-  color: var(--muted);
-}
-
 .field-label {
   font-size: 14px;
   font-weight: 650;

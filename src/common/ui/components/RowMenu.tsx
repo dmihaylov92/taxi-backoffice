@@ -1,4 +1,12 @@
-import { Fragment, useEffect, useId, useRef, useState } from "react";
+import {
+  Fragment,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import { Icon, type IconName } from "./Icon";
 
 export interface RowMenuItem<Action extends string> {
@@ -23,6 +31,8 @@ interface RowMenuProps<Action extends string> {
   onSelect: (action: Action) => void;
 }
 
+const MENU_GAP = 4;
+
 /** Overflow menu for one table row; follows the menu-button pattern (arrows, Escape, focus return). */
 export function RowMenu<Action extends string>({
   triggerLabel,
@@ -33,24 +43,62 @@ export function RowMenu<Action extends string>({
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const root = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLUListElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  /** Viewport position of the menu; it is drawn outside the table so overflow cannot clip it. */
+  const [position, setPosition] = useState<{ top: number; left: number }>();
+
+  useLayoutEffect(() => {
+    if (!open || !trigger.current || !menu.current) {
+      setPosition(undefined);
+
+      return;
+    }
+
+    const anchor = trigger.current.getBoundingClientRect();
+    const size = menu.current.getBoundingClientRect();
+    const below = anchor.bottom + MENU_GAP;
+    const fitsBelow = below + size.height <= window.innerHeight;
+    const top = fitsBelow
+      ? below
+      : Math.max(MENU_GAP, anchor.top - MENU_GAP - size.height);
+    const left = Math.max(
+      MENU_GAP,
+      Math.min(anchor.right - size.width, window.innerWidth - size.width - MENU_GAP),
+    );
+
+    setPosition({ top, left });
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    root.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    menu.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
 
     function onPointerDown(event: MouseEvent) {
-      if (!root.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+
+      if (!root.current?.contains(target) && !menu.current?.contains(target)) {
         setOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", onPointerDown);
+    // A menu drawn at a fixed spot would drift from its row, so it closes instead.
+    function dismiss() {
+      setOpen(false);
+    }
 
-    return () => document.removeEventListener("mousedown", onPointerDown);
+    document.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("resize", dismiss);
+    window.addEventListener("scroll", dismiss, true);
+
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("resize", dismiss);
+      window.removeEventListener("scroll", dismiss, true);
+    };
   }, [open]);
 
   function close() {
@@ -60,7 +108,7 @@ export function RowMenu<Action extends string>({
 
   function onKeyDown(event: React.KeyboardEvent) {
     const elements = [
-      ...(root.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ??
+      ...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ??
         []),
     ];
     const index = elements.indexOf(document.activeElement as HTMLElement);
@@ -114,8 +162,19 @@ export function RowMenu<Action extends string>({
       >
         <Icon name="more" />
       </button>
-      {open && (
-        <ul id={menuId} role="menu" className="menu">
+      {open &&
+        createPortal(
+        <ul
+          ref={menu}
+          id={menuId}
+          role="menu"
+          className="menu"
+          style={
+            position
+              ? { top: position.top, left: position.left }
+              : { top: 0, left: 0, visibility: "hidden" }
+          }
+        >
           {items.map((item) => (
             <Fragment key={item.action}>
               {item.separated && (
@@ -158,8 +217,9 @@ export function RowMenu<Action extends string>({
               </li>
             </Fragment>
           ))}
-        </ul>
-      )}
+        </ul>,
+          document.body,
+        )}
     </div>
   );
 }

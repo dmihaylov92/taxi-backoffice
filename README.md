@@ -53,4 +53,12 @@ docker compose -f ../compose.yaml up -d --no-deps --wait backoffice
 - `src/tests`: all tests, mirroring `src` by slice, named `<Subject>.test.ts(x)`.
 - `nginx.conf`: static hosting, SPA fallback, `/api/` proxy, CSP.
 
-No remote fonts, analytics, tokens in browser storage or public registration.
+## API validation errors in forms
+
+`ApiClient` reads the `errors` of a 400 problem body into `ApiError.violations`, and `toApiFailure` passes them on as `ApiFailure.violations`. To show them beside the inputs a form only declares a field map (request field to form field, e.g. `rides/domain/models/RideRejectedFields.ts`) and optional wording, then calls `useRejectedFields({ failure, fieldMap, order, ids, messages })`. The hook picks the reason per field, falls back to the shared wording in `common/ui/assets/copy.ts` (`violationText`), focuses the first refused field and drops a refusal when its field is edited (`dismiss`). Rides, cars and accounts forms use it.
+
+## Address search
+
+Address fields (`common/ui/components/AddressAutocomplete`) propose Bulgarian addresses from Google Places API (New) over REST, 500 ms after the user stops typing, with Dimitrovgrad ranked first (a bias, not a restriction). Picking a proposal also fetches its coordinates, which are saved with the ride. Setup, restrictions of the key and the tunables are in `.env.example`; without `VITE_GOOGLE_PLACES_API_KEY` the fields are plain inputs. The provider is isolated in `common/domain/clients/GooglePlacesClient.ts` (port: `AddressSearchClient`); the CSP in `nginx.conf` allows only `https://places.googleapis.com` for it.
+
+No remote fonts or scripts, analytics, tokens in browser storage or public registration. The only third-party request is the address search above, and only when a key is configured.
