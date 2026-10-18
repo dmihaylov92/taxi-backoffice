@@ -25,6 +25,9 @@ interface RidesTableProps {
   capabilities: RideCapabilities;
   operations: RideOperations;
   busy: boolean;
+  /** Rides just changed by a live event, with a counter that tells repeated changes apart. */
+  highlighted: ReadonlyMap<string, number>;
+  onHighlightEnd: (rideId: string) => void;
   onAction: (ride: Ride, action: RideAction) => void;
 }
 
@@ -96,6 +99,8 @@ export function RidesTable({
   capabilities,
   operations,
   busy,
+  highlighted,
+  onHighlightEnd,
   onAction,
 }: RidesTableProps) {
   return (
@@ -126,9 +131,29 @@ export function RidesTable({
         <tbody>
           {rides.map((ride) => {
             const number = rideNumber(ride.id);
+            const changes = highlighted.get(ride.id);
 
             return (
-              <tr key={ride.id}>
+              <tr
+                key={ride.id}
+                // Two alternating animations, so a second change restarts the glow of a row still glowing.
+                className={
+                  changes === undefined
+                    ? undefined
+                    : changes % 2 === 0
+                      ? "row-changed-even"
+                      : "row-changed-odd"
+                }
+                onAnimationEnd={
+                  changes === undefined
+                    ? undefined
+                    : (event) => {
+                        if (event.target === event.currentTarget) {
+                          onHighlightEnd(ride.id);
+                        }
+                      }
+                }
+              >
                 <th scope="row" className="ride-number">
                   {number}
                 </th>

@@ -8,10 +8,15 @@ import { AppRoutes } from "./AppRoutes";
 import { authService, type AuthApi } from "./auth/domain/services/AuthService";
 import { AuthSessionProvider } from "./auth/ui/components/AuthSessionProvider";
 import { ApiClient } from "./common/domain/clients/ApiClient";
+import { EventStreamClient } from "./common/domain/clients/EventStreamClient";
 import {
   createAddressSearch,
   type AddressSearchApi,
 } from "./common/domain/services/AddressSearchService";
+import {
+  EventStreamService,
+  type EventStreamApi,
+} from "./common/domain/services/EventStreamService";
 import { AddressSearchProvider } from "./common/ui/components/AddressSearchProvider";
 import { CarClient } from "./rides/domain/clients/CarClient";
 import { DriverLookupClient } from "./rides/domain/clients/DriverLookupClient";
@@ -46,11 +51,24 @@ function createRideService(auth: AuthApi): RideApi {
   return new RideService(new RideClient(api), new DriverLookupClient(api));
 }
 
+/** The shared live event stream renews the cookie session like other requests; browsers without EventSource go without it. */
+function createEventStream(auth: AuthApi): EventStreamApi | undefined {
+  if (typeof EventSource === "undefined") {
+    return undefined;
+  }
+
+  return new EventStreamService(
+    new EventStreamClient("/api/v1/events"),
+    async () => (await auth.renew?.()) ?? false,
+  );
+}
+
 export function App({
   auth = authService,
   accounts,
   cars,
   rides,
+  eventStream,
   addressSearch,
   linkToken,
 }: {
@@ -58,6 +76,7 @@ export function App({
   accounts?: AccountApi;
   cars?: CarApi;
   rides?: RideApi;
+  eventStream?: EventStreamApi;
   /** Address search for the address fields; defaults to the provider configured in the build. */
   addressSearch?: AddressSearchApi;
   linkToken?: string;
@@ -65,6 +84,7 @@ export function App({
   const [defaultAccounts] = useState(() => createAccountService(auth));
   const [defaultCars] = useState(() => createCarService(auth));
   const [defaultRides] = useState(() => createRideService(auth));
+  const [defaultEventStream] = useState(() => createEventStream(auth));
   const [defaultAddressSearch] = useState(() => createAddressSearch());
 
   return (
@@ -75,6 +95,7 @@ export function App({
             accounts: accounts ?? defaultAccounts,
             cars: cars ?? defaultCars,
             rides: rides ?? defaultRides,
+            eventStream: eventStream ?? defaultEventStream,
           }}
           linkToken={linkToken}
         />

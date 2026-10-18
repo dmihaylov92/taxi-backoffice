@@ -1288,7 +1288,7 @@ describe("RidesPage (mocked ride port, not live integration)", () => {
       });
 
       expect(
-        within(dialog).getByText(ridesCopy.reject.keepsAvailability),
+        within(dialog).getByText(ridesCopy.reject.releasesDriver),
       ).toBeVisible();
       expect(
         await within(dialog).findByText(ridesCopy.reject.notNotified),

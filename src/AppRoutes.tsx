@@ -21,8 +21,11 @@ import {
 } from "./common/domain/services/AccessService";
 import { roleLabels, shell } from "./common/ui/assets/copy";
 import { AppShell, type NavItem } from "./common/ui/components/AppShell";
+import { EventStreamProvider } from "./common/ui/components/EventStreamProvider";
 import { Layout } from "./common/ui/components/Layout";
+import { StreamStatus } from "./common/ui/components/StreamStatus";
 import type { CarApi } from "./rides/domain/services/CarService";
+import type { EventStreamApi } from "./common/domain/services/EventStreamService";
 import type { RideApi } from "./rides/domain/services/RideService";
 import { CarsPage } from "./rides/ui/pages/CarsPage";
 import { RidesPage } from "./rides/ui/pages/RidesPage";
@@ -31,6 +34,8 @@ export interface AppServices {
   accounts: AccountApi;
   cars: CarApi;
   rides: RideApi;
+  /** The shared live event stream; absent where the browser cannot hold one. */
+  eventStream?: EventStreamApi;
 }
 
 interface PageContext {
@@ -124,6 +129,7 @@ function ModuleRoute({
       loggingOut={loggingOut}
       onLogout={logout}
       items={navItems(identity.roles)}
+      status={<StreamStatus />}
     >
       {PAGES[id]({ identity, services, expire })}
     </AppShell>
@@ -138,7 +144,7 @@ export function AppRoutes({
   services: AppServices;
   linkToken?: string;
 }) {
-  const { booting, sessionError, identity } = useAuthSession();
+  const { booting, sessionError, identity, expire } = useAuthSession();
   const [activeLink, setActiveLink] = useState(linkToken);
   const location = useLocation();
   const clearLink = () => setActiveLink(undefined);
@@ -159,7 +165,7 @@ export function AppRoutes({
     );
   }
 
-  return (
+  const routes = (
     <Routes>
       {ROUTED_IDS.map((id) => (
         <Route
@@ -207,5 +213,22 @@ export function AppRoutes({
         />
       </Route>
     </Routes>
+  );
+
+  if (!services.eventStream) {
+    return routes;
+  }
+
+  return (
+    <EventStreamProvider
+      eventStream={services.eventStream}
+      // The stream carries ride events, so only accounts that may see rides open it.
+      enabled={
+        identity !== null && canOpenModule(identity.roles, "rides")
+      }
+      onSessionExpired={expire}
+    >
+      {routes}
+    </EventStreamProvider>
   );
 }

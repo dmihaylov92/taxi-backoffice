@@ -514,3 +514,65 @@ a.nav-item.active {
     display: none;
   }
 }
+
+/* Live updates */
+.live-updates {
+  position: fixed;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  z-index: 10;
+  max-width: calc(100vw - 2 * var(--space-4));
+}
+
+.live-updates-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* Live connection indicator in the top bar */
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.live-status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--control);
+}
+
+.live-status-live .live-status-dot {
+  background: var(--fresh);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--fresh) 70%, transparent);
+}
+
+.live-status-connecting .live-status-dot {
+  background: var(--caution);
+}
+
+.live-status-paused .live-status-dot {
+  background: var(--control);
+}
+
+@media (max-width: 640px) {
+  .live-status-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}

@@ -226,6 +226,46 @@
   gap: 12px;
 }
 
+/* A row a live update just changed glows green once, then fades. Two names let a repeat change restart it. */
+.row-changed-even {
+  animation: row-glow-even 2.2s ease-out;
+}
+
+.row-changed-odd {
+  animation: row-glow-odd 2.2s ease-out;
+}
+
+@keyframes row-glow-even {
+  0% {
+    background-color: color-mix(in srgb, var(--fresh) 32%, transparent);
+    box-shadow: inset 0 0 18px color-mix(in srgb, var(--fresh) 45%, transparent);
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 transparent;
+  }
+}
+
+@keyframes row-glow-odd {
+  0% {
+    background-color: color-mix(in srgb, var(--fresh) 32%, transparent);
+    box-shadow: inset 0 0 18px color-mix(in srgb, var(--fresh) 45%, transparent);
+  }
+
+  100% {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row-changed-even,
+  .row-changed-odd {
+    animation: none;
+  }
+}
+
 /* Details */
 .detail-list {
   display: grid;

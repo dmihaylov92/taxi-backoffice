@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toApiFailure } from "../../domain/mappers/ApiFailureMapper";
 import type { ApiFailure } from "../../domain/models/ApiFailure";
 import type { ListPage } from "../../domain/models/ListPage";
@@ -34,6 +34,7 @@ export function usePagedList<Filters, Item>(
 ) {
   const [state, setState] = useState<ListState<Item>>({ loading: true });
   const [reloadKey, setReloadKey] = useState(0);
+  const latestPage = useRef<ListPage<Item>>(undefined);
   const unauthenticated = useLatest(onUnauthenticated);
   const emptyPage = useLatest(onEmptyPage);
 
@@ -58,6 +59,7 @@ export function usePagedList<Filters, Item>(
           return;
         }
 
+        latestPage.current = loaded;
         setState({ loading: false, page: loaded });
       })
       .catch((error: unknown) => {
@@ -67,6 +69,7 @@ export function usePagedList<Filters, Item>(
 
         const failure = toApiFailure(error);
 
+        latestPage.current = undefined;
         setState({ loading: false, failure });
 
         if (failure.kind === "unauthenticated") {
@@ -77,5 +80,28 @@ export function usePagedList<Filters, Item>(
     return () => controller.abort();
   }, [api, filters, page, reloadKey, unauthenticated, emptyPage]);
 
-  return { ...state, reload: () => setReloadKey((key) => key + 1) };
+  /**
+   * Replaces the loaded page in place, for example with a live change, and returns the page before
+   * and after; ignored (undefined) until a page is loaded. Changes made in a burst each build on the
+   * previous one, because the latest page is read from a ref and not from a render.
+   */
+  const update = useCallback(
+    (change: (loaded: ListPage<Item>) => ListPage<Item>) => {
+      const before = latestPage.current;
+
+      if (!before) {
+        return undefined;
+      }
+
+      const after = change(before);
+
+      latestPage.current = after;
+      setState((current) => ({ ...current, page: after }));
+
+      return { before, after };
+    },
+    [],
+  );
+
+  return { ...state, reload: () => setReloadKey((key) => key + 1), update };
 }

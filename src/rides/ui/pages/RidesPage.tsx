@@ -8,6 +8,7 @@ import {
   LoadingState,
 } from "../../../common/ui/components/ListStates";
 import { Pagination } from "../../../common/ui/components/Pagination";
+import { useEventStream } from "../../../common/ui/hooks/useEventStream";
 import { usePagedList } from "../../../common/ui/hooks/usePagedList";
 import { driverName } from "../../domain/models/Car";
 import {
@@ -16,12 +17,14 @@ import {
   toSearchParams,
 } from "../../domain/mappers/RideMapper";
 import { rideNumber, type Ride } from "../../domain/models/Ride";
+import { rideEventDecoders } from "../../domain/mappers/RideEventMapper";
 import type { RideOperations } from "../../domain/models/RideCapabilities";
 import { EMPTY_RIDE_DRAFT, type RideDraft } from "../../domain/models/RideDraft";
 import type { RideDriver } from "../../domain/models/RideDriver";
 import type { RideFilters } from "../../domain/models/RideFilters";
 import type { RideAction } from "../../domain/services/RideActionService";
-import type { RideApi } from "../../domain/services/RideService";
+import { applyRideEvent } from "../../domain/services/RideListUpdateService";
+import { PAGE_SIZE, type RideApi } from "../../domain/services/RideService";
 import {
   ridePaginationCopy,
   rideFailureText,
@@ -47,6 +50,14 @@ type Dialog =
   | { kind: "reject"; ride: Ride }
   | { kind: "reopen"; ride: Ride }
   | { kind: "remove"; ride: Ride };
+
+/** A row glow is skipped for people who asked for less motion; the animation never ends there to clear it. */
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
 
 interface RidesPageProps {
   rides: RideApi;
@@ -98,6 +109,59 @@ export function RidesPage({
   );
   const reloadList = list.reload;
   const reloadDrivers = directory.reload;
+  /** Rides a live event just changed, so their rows glow once; the value counts that ride's changes. */
+  const [highlighted, setHighlighted] = useState<ReadonlyMap<string, number>>(
+    new Map(),
+  );
+  const updateList = list.update;
+  /** An event arrived while a page was loading; the response may predate it, so load once more afterwards. */
+  const reloadAfterLoad = useRef(false);
+  // A (re)connected stream may have missed changes, so every ready refetches the current page.
+  useEventStream(rideEventDecoders, {
+    onEvent: (event) => {
+      if (list.loading) {
+        reloadAfterLoad.current = true;
+
+        return;
+      }
+
+      const change = updateList((loaded) =>
+        applyRideEvent(loaded, filters, page, event, PAGE_SIZE),
+      );
+
+      if (event.type !== "updated" || !change || prefersReducedMotion()) {
+        return;
+      }
+
+      const rideId = event.ride.id;
+      const before = change.before.items.find((row) => row.id === rideId);
+      const after = change.after.items.find((row) => row.id === rideId);
+
+      if (after && after !== before) {
+        setHighlighted((current) =>
+          new Map(current).set(rideId, (current.get(rideId) ?? -1) + 1),
+        );
+      }
+    },
+    onReady: reloadList,
+  });
+
+  useEffect(() => {
+    if (!list.loading && reloadAfterLoad.current) {
+      reloadAfterLoad.current = false;
+      reloadList();
+    }
+  }, [list.loading, reloadList]);
+
+  function clearHighlight(rideId: string) {
+    setHighlighted((current) => {
+      const rest = new Map(current);
+
+      rest.delete(rideId);
+
+      return rest;
+    });
+  }
 
   function reloadAll() {
     reloadList();
@@ -336,6 +400,8 @@ export function RidesPage({
           capabilities={rides.capabilities}
           operations={operations}
           busy={list.loading}
+          highlighted={highlighted}
+          onHighlightEnd={clearHighlight}
           onAction={openOperation}
         />
         <Pagination
@@ -459,7 +525,13 @@ export function RidesPage({
                   : ridesCopy.reject.notNotified}
               </li>
             )}
-            <li>{ridesCopy.reject.keepsAvailability}</li>
+            {dialog.ride.driverId && (
+              <li>
+                {dialog.ride.status === "ACCEPTED"
+                  ? ridesCopy.reject.releasesDriver
+                  : ridesCopy.reject.unassignsDriver}
+              </li>
+            )}
             <li>{ridesCopy.reject.reopenable}</li>
           </ul>
         </RideActionDialog>

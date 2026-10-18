@@ -15,6 +15,8 @@ interface AppShellProps {
   onLogout: () => void;
   /** Only modules the account may open; hidden ones never appear. */
   items: readonly NavItem[];
+  /** Shown in the top bar before the user, for example the live connection state. */
+  status?: ReactNode;
   children: ReactNode;
 }
 
@@ -24,6 +26,7 @@ export function AppShell({
   roleLabel,
   loggingOut,
   onLogout,
+  status,
   children,
 }: AppShellProps) {
   return (
@@ -61,6 +64,7 @@ export function AppShell({
         </aside>
         <div className="shell-body">
           <header className="shell-top">
+            {status}
             <div className="shell-user" aria-label={shell.userLabel}>
               <span className="avatar" aria-hidden="true">
                 {email.slice(0, 1).toUpperCase()}

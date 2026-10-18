@@ -27,6 +27,16 @@ export const roleLabels: Record<Role, string> = {
   DRIVER: "Шофьор",
 };
 
+/** The live event stream: the top-bar indicator and the notice shown while it is down. */
+export const stream = {
+  status: {
+    live: "Онлайн",
+    connecting: "Свързване…",
+    paused: "Офлайн",
+  },
+  paused: "Връзката за живи обновления е прекъсната. Опитваме отново…",
+} as const;
+
 export const shell = {
   navLabel: "Основна навигация",
   unavailable: "Все още не е налично",

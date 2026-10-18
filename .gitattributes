@@ -1,0 +1,4 @@
+# Store text with LF in the repository; Windows-only scripts keep CRLF.
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
